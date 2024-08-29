@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphics</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #glcanvas {
+            flex: 1;
+            width: 80%;
+        }
+
+        #menu {
+            width: 20%;
+            background-color: #f4f4f4;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        #menu li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #ddd;
+            border: 1px solid #ccc;
+        }
+
+        #menu button {
+            margin-right: 5px;
+        }
+
+        #addButton {
+            width: 100%;
+        }
+
+        .color-picker {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .color-picker label {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .color-picker input {
+            display: block;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        /* Light Settings Modal Styles */
+        #lightSettingsModal {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 30%;
+            width: 40%;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        #lightSettingsModal label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #lightSettingsModal input[type="color"],
+        #lightSettingsModal input[type="number"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        /* Modal Overlay */
+        #lightSettingsOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .full-width-button {
+            width: 100%;
+            box-sizing: border-box; /* Ensures padding and border are included in the width */
+            padding: 10px; /* Adds some padding inside the button */
+            margin-top: 10px; /* Adds some space above the button */
+            background-color: #4CAF50; /* Change to your preferred color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+    .full-width-button:hover {
+       background-color: #45a049; /* Darker shade on hover */
+    }
+
+    #moveControlsMenu {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: auto;
+    background-color: rgba(30, 30, 30, 0.9);
+    padding: 15px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    border-radius: 5px;
+    color: white;
+}
+
+#moveControlsMenu .control-section {
+    margin-bottom: 15px;
+}
+
+#moveControlsMenu h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+#moveControlsMenu .control-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+#moveControlsMenu .control-group span {
+    width: 20px;
+    text-align: center;
+}
+
+#moveControlsMenu button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 0 2px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.3s;
+}
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+    }
+    
+    #moveControlsMenu button:hover {
+        background-color: #45a049;
+    }
+    
+    #moveControlsMenu button:active {
+        background-color: #3e8e41;
+    }
+    
+    #finishMove {
+        background-color: #f44336 !important;
+        width: 100%;
+        padding: 10px !important;
+        font-size: 14px !important;
+        margin-top: 10px !important;
+    }
+    
+    #finishMove:hover {
+        background-color: #d32f2f !important;
+    }
+    </style>
+</head>
+<body>
+    <canvas id="glcanvas"></canvas>
+    <div id="moveControlsMenu">
+        <div class="control-section">
+            <h3>Translate</h3>
+            <div class="control-group">
+                <button id="translateXMinus">-</button>
+                <span>X</span>
+                <button id="translateXPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="translateYMinus">-</button>
+                <span>Y</span>
+                <button id="translateYPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="translateZMinus">-</button>
+                <span>Z</span>
+                <button id="translateZPlus">+</button>
+            </div>
+        </div>
+        <div class="control-section">
+            <h3>Rotate</h3>
+            <div class="control-group">
+                <button id="rotateXMinus">-</button>
+                <span>X</span>
+                <button id="rotateXPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="rotateYMinus">-</button>
+                <span>Y</span>
+                <button id="rotateYPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="rotateZMinus">-</button>
+                <span>Z</span>  
+                <button id="rotateZPlus">+</button>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="resetTransformations">Reset</button> 
+            <button id="teleportHere">Teleport here</button>
+        </div>
+        <button id="finishMove">Finish Move</button>
+    </div>
+    <div id="menu">
+        <ul>
+            <!-- Dynamic list items will be added here -->
+        </ul>
+        <button id="addButton">+</button>
+        <div class="color-picker">
+            <label for="backgroundColorPicker">Background Color:</label>
+            <input type="color" id="backgroundColorPicker" value="#000000">
+            <label for="objectColorPicker">Objects Color:</label>
+            <input type="color" id="objectColorPicker" value="#ffffff">
+        </div>
+        <button id="setCameraCenterButton">Set Camera Center</button>
+        <button id="resetViewButton">Go back to the main view</button>
+        <button id="lightSettingsButton">Light Settings</button>
+        <input type="file" id="objFileInput" accept=".obj" style="display:none">
+        <input type="file" id="mtlFileInput" accept=".mtl" style="display:none">
+    </div>
+    
+    <!-- Light Settings Modal -->
+    <div id="lightSettingsOverlay"></div>
+        <div id="lightSettingsModal">
+            <h2>Light Settings</h2>
+            <div class="color-picker">
+            <label for="lightColor">Light Color:</label>
+            <input type="color" id="lightColor" value="#ffffff">
+            <label for="ambientLightColor">Ambient Light Color:</label>
+            <input type="color" id="ambientLightColor" value="#ffffff">
+            <label for="ambientLightStrength">Ambient Light Strength:</label>
+            <input type="number" id="ambientLightStrength" step="0.01" value="0.1" min="0">
+            <button id="setLightPositionButton" class="full-width-button"   >Set Light Position</button>
+    
+        </div>
+
+        <button id="closeLightSettings">Close</button>
+    </div>
+
+    <script src="objects/renderobject.js"></script>
+    <script src="objects/objectparser.js"></script>
+    <script src="objects/objectreader.js"></script>
+    <script src="objects/texturereader.js"></script>
+    <script src="maths/vector.js"></script>
+    <script src="maths/matrix.js"></script>
+    <script src="engine/webglengine.js"></script>
+    <script src="engine/webgl.js"></script>
+    <script src="engine/webglbinder.js"></script>
+    <script src="engine/webglbuffer.js"></script>
+    <script src="engine/webglrenderer.js"></script>
+    <script src="eventhandlers/mousehandlers.js"></script>
+    <script src="eventhandlers/objectsmover.js"></script>
+    <script src="eventhandlers/addObjectHandlers.js"></script>
+    <script src="eventhandlers/moveObjectHandlers.js"></script>
+    <script src="eventhandlers/textureUploadHandlers.js"></script>
+    <script src="eventhandlers/removeObjectHandlers.js"></script>
+    <script src="eventhandlers/settingsHandlers.js"></script>
+    <script src="eventhandlers/lightSettingsHandlers.js"></script>
+
+    <script src="main.js"></script>
+
+</body>
+</html>

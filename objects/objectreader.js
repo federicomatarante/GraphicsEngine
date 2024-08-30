@@ -7,10 +7,12 @@ class ObjectReader {
      * Creates an instance of ObjectReader with the specified OBJ and MTL file contents.
      * @param {string} objFile - The contents of the OBJ file as a string.
      * @param {string} mtlFile - The contents of the MTL file as a string.
+     * @param {Object} textures - a ordered object mapping file names to images. The index will be used to assign the texture to a 
      */
-    constructor(objFile, mtlFile) {
+    constructor(objFile, mtlFile,textures) {
         this.objFile = objFile; // The contents of the OBJ file.
         this.mtlFile = mtlFile; // The contents of the MTL file.
+        this.textures = textures;
     }
 
     /**
@@ -20,7 +22,7 @@ class ObjectReader {
      */
     async getObject() {
         try {
-            const parser = new ObjectParser(this.objFile, this.mtlFile);
+            const parser = new ObjectParser(this.objFile, this.mtlFile,Object.keys(this.textures));
             
             return new RenderObject(
                 parser.getVertices(),    // Array of vertex positions.
@@ -28,6 +30,7 @@ class ObjectReader {
                 parser.getNormals(),     // Array of normal vectors.
                 parser.getIndices(),     // Array of indices for rendering the object.
                 parser.getMaterials(),    // Array of material properties for the object.
+                Object.values(this.textures)
             );
         } catch (error) {
             // Log any errors and rethrow them.

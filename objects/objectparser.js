@@ -7,13 +7,15 @@ class ObjectParser {
      * Creates a new ObjectParser instance and parses the given OBJ and MTL strings.
      * @param {string} objString - The content of the OBJ file as a string.
      * @param {string} mtlString - The content of the MTL file as a string.
+     * @param {Array} textures - a ordered array of texture file names. The index will be used to assign the texture to a 
      */
-    constructor(objString, mtlString) {
+    constructor(objString, mtlString,textures) {
         this.vertices = [];
         this.normals = [];
         this.texCoords = [];
         this.faces = [];
         this.materials = {};
+        this.textures = textures;
         this.#parseOBJ(objString);
         this.#parseMTL(mtlString);
     }
@@ -24,6 +26,7 @@ class ObjectParser {
      * @private
      */
     #parseMTL(text) {
+        let textureName,textureIndex;
         const lines = text.split('\n');
         let currentMtlName = null;
         for (let line of lines) {
@@ -48,14 +51,20 @@ class ObjectParser {
                     this.materials[currentMtlName][parts[0]] = [parts[1], parts[2], parts[3]];
                     break;
                 case 'map_Kd':
-                    this.materials[currentMtlName]["diffuse_texture"] = parts[1];
+                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureIndex = this.textures.indexOf(textureName);
+                    this.materials[currentMtlName]["diffuse_texture"] = textureIndex;
                     break;
                 case 'bump':
                 case 'map_Bump':
-                    this.materials[currentMtlName]["normal_texture"] = parts[1];
+                    textureName = parts[1].split('/').pop();
+                    textureIndex = this.textures.indexOf(textureName);
+                    this.materials[currentMtlName]["normal_texture"] = textureIndex;
                     break;
                 case 'map_Ks':
-                    this.materials[currentMtlName]["specular_texture"] = parts[1];
+                    textureName = parts[1].split('/').pop();
+                    textureIndex = this.textures.indexOf(textureName);
+                    this.materials[currentMtlName]["specular_texture"] = textureIndex;
                     break;
                 case '#':
                 case '':
@@ -113,7 +122,7 @@ class ObjectParser {
                             material: currentMaterial
                         });
                     }
-                this.faces.push(face);
+                    this.faces.push(face);
                     break;
                 case 'usemtl': // Use a specific material for subsequent faces
                     currentMaterial = parts[1];
@@ -219,31 +228,37 @@ class ObjectParser {
      * @returns {Float32Array} The array of material properties.
      */
     getMaterials() {
-        const materials = [];
-        for (let face of this.faces) {
-            for (let vertex of face) {
-                if (vertex.material && this.materials[vertex.material]) {
-                    const material = this.materials[vertex.material];
-                    materials.push(
-                        parseFloat(material.Kd[0]),
-                        parseFloat(material.Kd[1]),
-                        parseFloat(material.Kd[2]),
-                        parseFloat(material.Ks[0]),
-                        parseFloat(material.Ks[1]),
-                        parseFloat(material.Ks[2]),
-                        parseFloat(material.Ns),
-                        material.illum
-                    );
-                } else {
-                    // Default material if none is specified
-                    materials.push(
-                        0.8, 0.8, 0.8,  // Default Kd
-                        0.5, 0.5, 0.5,  // Default Ks
-                        32.0            // Default Ns
-                    );
-                }
+    const materials = [];
+    for (let face of this.faces) {
+        for (let vertex of face) {
+            if (vertex.material && this.materials[vertex.material]) {
+                const material = this.materials[vertex.material];
+                materials.push(
+                    parseFloat(material.Kd[0]),
+                    parseFloat(material.Kd[1]),
+                    parseFloat(material.Kd[2]),
+                    parseFloat(material.Ks[0]),
+                    parseFloat(material.Ks[1]),
+                    parseFloat(material.Ks[2]),
+                    parseFloat(material.Ns),
+                    parseFloat(material.illum),
+                    material.diffuse_texture || -1,
+                    material.normal_texture || -1,
+                    material.specular_texture || -1,
+                );
+            } else {
+                // Default material if none is specified
+                materials.push(
+                    0.8, 0.8, 0.8,  // Default Kd
+                    0.5, 0.5, 0.5,  // Default Ks
+                    32.0,           // Default Ns
+                    2.0,            // Default illum
+                    -1,-1,-1         // No textures by default
+                );
             }
         }
-        return new Float32Array(materials);
     }
+    return new Float32Array(materials);
+}
+
 }

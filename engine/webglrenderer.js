@@ -25,8 +25,10 @@ class WebGLRenderer {
         const buffer = new WebGLBuffer(this.gl);
         const triangles = renderObject.getTriangles();
         const textures = renderObject.getTextures();
+        const partialTextures = renderObject.getPartialTextures();
         buffer.setUpMeshes(triangles);
         buffer.setUpTextures(textures);
+        buffer.setUpPartialTextures(partialTextures);
         this.buffers.set(renderObject, buffer);
     }
 
@@ -59,6 +61,11 @@ class WebGLRenderer {
         binder.bindDiffuseTexture(buffer.diffuseTexture, renderParams.objectsColor);
         binder.bindNormalTexture(buffer.normalTexture);
         binder.bindSpecularTexture(buffer.specularTexture);
+        binder.initializePartialTextures(buffer.partialTextures.length);
+        for(let i = 0; i<buffer.partialTextures.length; i++){
+            const texture = buffer.partialTextures[i];
+            binder.bindPartialTextures(texture,i);
+        }
 
         // Setting up view matrices
         binder.bindViewMatrices(renderParams.projectionMatrix, renderParams.modelViewMatrix, renderParams.normalMatrix);

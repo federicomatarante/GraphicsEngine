@@ -21,6 +21,7 @@ function registerListeners(engine) {
     const addButton = document.getElementById('addButton');
     const objFileInput = document.getElementById('objFileInput');
     const mtlFileInput = document.getElementById('mtlFileInput');
+    const imageFileInput = document.getElementById('imageFileInput');
     const backgroundColorPicker = document.getElementById('backgroundColorPicker');
     const objectColorPicker = document.getElementById('objectColorPicker');
     const resetViewButton = document.getElementById('resetViewButton');
@@ -39,7 +40,7 @@ function registerListeners(engine) {
 
     // Register event listeners for mouse interactions and object management
     mouseHandlers.register(canvas);
-    addObjectHandlers.register(addButton, objFileInput, mtlFileInput);
+    addObjectHandlers.register(addButton, objFileInput, mtlFileInput,imageFileInput);
     settingsHandlers.register(backgroundColorPicker, objectColorPicker, resetViewButton,setCameraCenterButton);
     lightSettingsHandlers.register(lightSettingsParameters);
 }

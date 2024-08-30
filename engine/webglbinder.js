@@ -88,15 +88,24 @@ class WebGLBinder {
         const NsAttributeLocation = this.gl.getAttribLocation(this.program, 'a_Ns');
         const illumAttributeLocation = this.gl.getAttribLocation(this.program, 'a_illum');
     
-        if (KdAttributeLocation === -1 || KsAttributeLocation === -1 || NsAttributeLocation === -1 || illumAttributeLocation === -1) {
-            console.error('Failed to get the storage location of material attributes');
+        // Assuming 'a_diffuseTexture', 'a_normalTexture', and 'a_specularTexture' are the attribute locations for the textures
+        const diffuseTextureLocation = this.gl.getAttribLocation(this.program, 'a_diffuseTextureIndex');
+        const normalTextureLocation = this.gl.getAttribLocation(this.program, 'a_normalTextureIndex');
+        const specularTextureLocation = this.gl.getAttribLocation(this.program, 'a_specularTextureIndex');
+    
+        if (
+            KdAttributeLocation === -1 || KsAttributeLocation === -1 || NsAttributeLocation === -1 ||
+            illumAttributeLocation === -1 || diffuseTextureLocation === -1 || normalTextureLocation === -1 ||
+            specularTextureLocation === -1
+        ) {
+            console.error('Failed to get the storage location of one or more material attributes');
             return;
         }
     
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, materialBuffer);
     
-        // Stride is now 32 bytes (8 floats * 4 bytes per float)
-        const stride = 32;
+        // Stride is now 44 bytes (11 floats * 4 bytes per float)
+        const stride = 44;
     
         this.gl.enableVertexAttribArray(KdAttributeLocation);
         this.gl.vertexAttribPointer(KdAttributeLocation, 3, this.gl.FLOAT, false, stride, 0);
@@ -109,6 +118,88 @@ class WebGLBinder {
     
         this.gl.enableVertexAttribArray(illumAttributeLocation);
         this.gl.vertexAttribPointer(illumAttributeLocation, 1, this.gl.FLOAT, false, stride, 28);
+    
+        // Binding texture indices (diffuse, normal, specular)
+        this.gl.enableVertexAttribArray(diffuseTextureLocation);
+        this.gl.vertexAttribPointer(diffuseTextureLocation, 1, this.gl.FLOAT, false, stride, 32);
+    
+        this.gl.enableVertexAttribArray(normalTextureLocation);
+        this.gl.vertexAttribPointer(normalTextureLocation, 1, this.gl.FLOAT, false, stride, 36);
+    
+        this.gl.enableVertexAttribArray(specularTextureLocation);
+        this.gl.vertexAttribPointer(specularTextureLocation, 1, this.gl.FLOAT, false, stride, 40);
+    }
+    
+    /**
+     * Initializes the array of partial textures in the shader.
+     * @param {number} textureCount - The number of partial textures (max 13).
+     */
+    initializePartialTextures(textureCount) {
+        if (textureCount > 13) {
+            console.warn('Maximum number of partial textures exceeded. Capping at 20.');
+            textureCount = 13;
+        }
+
+        const samplerArrayLocation = this.gl.getUniformLocation(this.program, 'u_partial_textures');
+
+        const samplerArray = new Int32Array(20);
+        const hasTextureArray = new Int32Array(20);
+
+        for (let i = 0; i < 13; i++) {
+            samplerArray[i] = i;
+            hasTextureArray[i] = i < textureCount ? 1 : 0;
+        }
+
+        this.gl.uniform1iv(samplerArrayLocation, samplerArray);
+    }
+
+    /**
+     * Binds a partial texture to the shader program.
+     * @param {WebGLTexture} texture - The partial texture to be bound.
+     * @param {number} index - The index of the partial texture (0-19).
+     */
+    bindPartialTextures(texture, index) {
+        const gl = this.gl;
+
+        // Ensure index is within valid range
+        if (index < 0 || index >= 20) {
+            console.error('Invalid partial texture index. Must be between 0 and 19.');
+            return;
+            }
+
+        // Bind the texture to the appropriate texture unit
+        gl.activeTexture(gl.TEXTURE0 + index);  // Use TEXTURE0 for index 0, TEXTURE1 for index 1, etc.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Set the uniform to indicate which texture unit this texture is bound to
+        const textureLocation = gl.getUniformLocation(this.program, `u_partial_textures[${index}]`);
+        if (textureLocation) {
+            gl.uniform1i(textureLocation, index);
+        } else {
+            console.error(`Uniform location for 'u_partial_textures[${index}]' not found.`);
+        }
+
+    }
+
+
+    /** TODO remove after you found out it's useless
+     * Sets the texture coordinates for a specific partial texture.
+     * @param {number} index - The index of the partial texture (0-19).
+     * @param {Float32Array} coordinates - The texture coordinates for the partial texture.
+     */
+    setPartialTextureCoordinates(index, coordinates) {
+        if (index < 0 || index >= 13) {
+            console.error('Invalid partial texture index. Must be between 0 and 19.');
+            return;
+        }
+
+        const attributeLocation = this.gl.getAttribLocation(this.program, `a_partial_texcoord_${index}`);
+        const buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, coordinates, this.gl.STATIC_DRAW);
+
+        this.gl.enableVertexAttribArray(attributeLocation);
+        this.gl.vertexAttribPointer(attributeLocation, 2, this.gl.FLOAT, false, 0, 0);
     }
 
     /**

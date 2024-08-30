@@ -10,8 +10,9 @@ class RenderObject {
      * @param {Float32Array} normalsData - The normal vectors of the object.
      * @param {Uint16Array} indexData - The indices for rendering the object.
      * @param {Float32Array} materialData - The material properties of the object.
+     * @param {Array} partialTextures - An array of {Image}, given the partial textsures of the renderobject.
      */
-    constructor(vertexData, textureData, normalsData, indexData, materialData) {
+    constructor(vertexData, textureData, normalsData, indexData, materialData,partialTextures) {
         this.transformation = TransformationMatrix.identity(); // Initial orientation (identity matrix).
         this.vertexData = vertexData; // Vertex data (positions).
         this.renderData = vertexData; // Render data (initially the same as vertex data).
@@ -22,6 +23,7 @@ class RenderObject {
         this.diffuseTexture = null; // Placeholder for diffuse texture.
         this.normalTexture = null; // Placeholder for normal texture.
         this.specularTexture = null; // Placeholder for specular texture.
+        this.partialTextures = partialTextures;
         this.objectXAxis = new Vector3D(1,0,0);
         this.objectYAxis = new Vector3D(0,1,0);
         this.objectZAxis = new Vector3D(0,0,1);
@@ -66,6 +68,14 @@ class RenderObject {
             diffuseTexture: this.diffuseTexture,
             specularTexture: this.specularTexture,
         }
+    }
+
+    /**
+     * Gets the partial textures needed for rendering the object.
+     * @returns {Array{HTMLImageElement}} The list of partial textures.
+     */
+    getPartialTextures(){
+        return this.partialTextures;
     }
 
     /**

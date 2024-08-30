@@ -27,6 +27,7 @@ class WebGLBuffer {
         this.normalTexture = null;
         this.specularTexture = null;
         this.trianglesNumber = 0; // Stores the number of triangles (or indices) for rendering
+        this.partialTextures = []
     }
 
     /**
@@ -75,19 +76,41 @@ class WebGLBuffer {
      * @param {HTMLImageElement} texture - The image element containing the texture.
      * @returns {WebGLTexture} - The WebGL texture object.
      */
-    #setUpTexture(texture) {
-        const gl = this.gl;
+    #setUpTexture(image) {
+            const gl = this.gl;
+
+        // Create a new texture object
         const textureObject = gl.createTexture();
-        // TODO add feature to allow to speicfy more settings, like interpolation
+        if (!textureObject) {
+            console.error('Failed to create texture.');
+            return null;
+        }
+
+        // Bind the texture object to TEXTURE_2D
         gl.bindTexture(gl.TEXTURE_2D, textureObject);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture);
-        gl.generateMipmap(gl.TEXTURE_2D);
+
+        // Set texture parameters
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Ensure image is fully loaded
+        if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            //gl.generateMipmap(gl.TEXTURE_2D);
+            // TODO generate mipmap when needed
+        } else {
+            console.error('Image not loaded or has invalid dimensions.');
+            gl.bindTexture(gl.TEXTURE_2D, null);
+            return null;
+        }
+
+        // Unbind the texture
+        gl.bindTexture(gl.TEXTURE_2D, null);
         return textureObject;
     }
+    
 
     /**
      * Sets up the textures for diffuse, normal, and specular mapping.
@@ -101,4 +124,22 @@ class WebGLBuffer {
         this.normalTexture = textures.normalTexture ? this.#setUpTexture(textures.normalTexture) : null;
         this.specularTexture = textures.specularTexture ? this.#setUpTexture(textures.specularTexture) : null;
     }
+
+    /**
+    * Sets up the partial textures of the object.
+    * @param {Array<HTMLImageElement>} textures - The textures.
+    */
+    setUpPartialTextures(textures) {
+       this.partialTextures = [];
+       for (let i = 0; i < Math.min(textures.length, 16); i++) { // Limit to 16 textures
+           const texture = textures[i];
+           const textureObject = this.#setUpTexture(texture);
+           if (textureObject) {
+               this.partialTextures.push(textureObject);
+           } else {
+               console.warn(`Failed to set up texture at index ${i}.`);
+           }
+       }
+    }
+
 }

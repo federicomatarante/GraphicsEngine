@@ -100,6 +100,7 @@ class AddObjectHandlers {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = () => reject(reader.error);
+            
             if(text){
                 return reader.readAsText(file);
             } else {
@@ -140,9 +141,14 @@ class AddObjectHandlers {
     async #uploadMaterialFile(event) {
         const mtlFile = event.target.files[0];
         if (!mtlFile) return;
-
         this.mtlContent = await this.#readFileContent(mtlFile);
-        this.imageFileInput.click();
+
+        if (confirm('Do you want to upload texture images?')) {
+            this.imageFileInput.click();
+        } else {
+            await this.#handleFileUpload();
+        }
+
     }
 
     /**
@@ -182,8 +188,7 @@ class AddObjectHandlers {
         objFileInput.addEventListener('change', this.uploadObjectFile);
         mtlFileInput.addEventListener('change', this.uploadMaterialFile);
         imageFileInput.addEventListener('change', this.uploadImageFiles);
-        imageFileInput.setAttribute('multiple', '');
-        
+            
         this.objFileInput = objFileInput;
         this.mtlFileInput = mtlFileInput;
         this.imageFileInput = imageFileInput;

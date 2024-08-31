@@ -73,6 +73,16 @@ class RenderObjectPart {
         this.#applyTransformations();
     }
 
+
+    /**
+     * Sets the position of the part.
+     * @param {Vector3D} position - the new position.
+     */
+    setPosition(position){
+        this.transformation.setTraslation(position);
+        this.#applyTransformations();
+    }
+
     /**
      * Resets the transformations of the part to its original state.
      */
@@ -148,6 +158,16 @@ class RenderObject {
     resetTransformations() {
         for (let part of this.parts) {
             part.resetTransformations();
+        }
+    }
+
+    /**
+     * Sets the position of the object.
+     * @param {Vector3D} position - the new position.
+     */
+    setPosition(position){
+        for (let part of this.parts) {
+            part.setPosition(position);
         }
     }
 

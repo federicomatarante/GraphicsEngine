@@ -23,15 +23,19 @@ class ObjectReader {
     async getObject() {
         try {
             const parser = new ObjectParser(this.objFile, this.mtlFile,Object.keys(this.textures));
-            
-            return new RenderObject(
-                parser.getVertices(),    // Array of vertex positions.
-                parser.getTexCoords(),   // Array of texture coordinates.
-                parser.getNormals(),     // Array of normal vectors.
-                parser.getIndices(),     // Array of indices for rendering the object.
-                parser.getMaterials(),    // Array of material properties for the object.
-                Object.values(this.textures)
-            );
+            const partNames = parser.getObjectNames();
+            const renderObject = new RenderObject(Object.values(this.textures));
+            for(const name of partNames){
+                const objectPart = new RenderObjectPart(
+                    parser.getVertices(name),    // Array of vertex positions.
+                    parser.getTexCoords(name),   // Array of texture coordinates.
+                    parser.getNormals(name),     // Array of normal vectors.
+                    parser.getIndices(name),     // Array of indices for rendering the object.
+                    parser.getMaterials(name),    // Array of material properties for the object.
+                );
+                renderObject.addPart(objectPart);
+            }
+            return renderObject;
         } catch (error) {
             // Log any errors and rethrow them.
             console.error('Error getting object:', error);

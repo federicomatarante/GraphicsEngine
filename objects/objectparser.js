@@ -7,17 +7,31 @@ class ObjectParser {
      * Creates a new ObjectParser instance and parses the given OBJ and MTL strings.
      * @param {string} objString - The content of the OBJ file as a string.
      * @param {string} mtlString - The content of the MTL file as a string.
-     * @param {Array} textures - a ordered array of texture file names. The index will be used to assign the texture to a 
+     * @param {Array} textures - An ordered array of texture file names. The index will be used to assign the texture to a material.
      */
-    constructor(objString, mtlString,textures) {
-        this.vertices = [];
-        this.normals = [];
-        this.texCoords = [];
-        this.faces = [];
+    constructor(objString, mtlString, textures) {
+        this.objects = {}; // Store multiple objects by name
+        this.vertices = []; // Global list of vertices
+        this.normals = [];  // Global list of normals
+        this.texCoords = []; // Global list of texture coordinates
         this.materials = {};
         this.textures = textures;
+        this.currentObjectName = 'default'; // Default object name
+        this.#initializeObject(this.currentObjectName); // Initialize the default object
         this.#parseOBJ(objString);
         this.#parseMTL(mtlString);
+    }
+
+    /**
+     * Initializes an object with empty arrays for faces and material information.
+     * @param {string} objectName - The name of the object to initialize.
+     * @private
+     */
+    #initializeObject(objectName) {
+        this.objects[objectName] = {
+            faces: [],
+            materials: [] // Store material information used by the object
+        };
     }
 
     /**
@@ -26,7 +40,7 @@ class ObjectParser {
      * @private
      */
     #parseMTL(text) {
-        let textureName,textureIndex;
+        let textureName, textureIndex;
         const lines = text.split('\n');
         let currentMtlName = null;
         for (let line of lines) {
@@ -84,13 +98,19 @@ class ObjectParser {
         const lines = text.split('\n');
         let currentMaterial = null;
 
-
         for (let line of lines) {
             line = line.trim();
             const parts = line.split(" ");
-            if (parts.length == 0) continue;
+            if (parts.length === 0) continue;
 
             switch (parts[0]) {
+                case 'o': // New Object
+                case 'g': // New Group
+                    this.currentObjectName = parts[1] || 'default';
+                    if (!this.objects[this.currentObjectName]) {
+                        this.#initializeObject(this.currentObjectName);
+                    }
+                    break;
                 case 'v': // Vertex
                     this.vertices.push(
                         parseFloat(parts[1]),
@@ -122,31 +142,30 @@ class ObjectParser {
                             material: currentMaterial
                         });
                     }
-                    this.faces.push(face);
+                    this.objects[this.currentObjectName].faces.push(face);
                     break;
                 case 'usemtl': // Use a specific material for subsequent faces
                     currentMaterial = parts[1];
                     break;
                 case "#": // Comment
                 case 'mtllib': // Reference to material file (ignored here)
-                case 'o': // Object name (ignored)
-                case 's': // Smoothing group (ignored, TODO for future implementation)
+                case 's': // Smoothing group (ignored)
                 case '':
                     break;
                 default:
                     console.error("Unexpected command! " + line);
             }
         }
-        
     }
 
     /**
-     * Retrieves all vertices as a flat Float32Array.
+     * Retrieves all vertices of a specific object as a flat Float32Array.
+     * @param {string} objectName - The name of the object to retrieve vertices for.
      * @returns {Float32Array} The array of vertices.
      */
-    getVertices() {
+    getVertices(objectName) {
         const vertices = [];
-        for (let face of this.faces) {
+        for (let face of this.objects[objectName].faces) {
             for (let vertex of face) {
                 const vi = vertex.vertexIndex;
                 vertices.push(
@@ -160,13 +179,13 @@ class ObjectParser {
     }
 
     /**
-     * Retrieves all texture coordinates as a flat Float32Array.
-     * If a vertex doesn't have texture coordinates, it defaults to (0, 0).
+     * Retrieves all texture coordinates of a specific object as a flat Float32Array.
+     * @param {string} objectName - The name of the object to retrieve texture coordinates for.
      * @returns {Float32Array} The array of texture coordinates.
      */
-    getTexCoords() {
+    getTexCoords(objectName) {
         const texCoords = [];
-        for (let face of this.faces) {
+        for (let face of this.objects[objectName].faces) {
             for (let vertex of face) {
                 if (vertex.texCoordIndex !== -1) {
                     const ti = vertex.texCoordIndex;
@@ -183,13 +202,13 @@ class ObjectParser {
     }
 
     /**
-     * Retrieves all normals as a flat Float32Array.
-     * If a vertex doesn't have a normal, it defaults to (0, 1, 0).
+     * Retrieves all normals of a specific object as a flat Float32Array.
+     * @param {string} objectName - The name of the object to retrieve normals for.
      * @returns {Float32Array} The array of normals.
      */
-    getNormals() {
+    getNormals(objectName) {
         const normals = [];
-        for (let face of this.faces) {
+        for (let face of this.objects[objectName].faces) {
             for (let vertex of face) {
                 if (vertex.normalIndex !== -1) {
                     const ni = vertex.normalIndex;
@@ -207,13 +226,14 @@ class ObjectParser {
     }
 
     /**
-     * Retrieves all indices for rendering triangles as a Uint16Array.
+     * Retrieves all indices for rendering triangles of a specific object as a Uint16Array.
+     * @param {string} objectName - The name of the object to retrieve indices for.
      * @returns {Uint16Array} The array of indices.
      */
-    getIndices() {
+    getIndices(objectName) {
         const indices = [];
         let index = 0;
-        for (let face of this.faces) {
+        for (let face of this.objects[objectName].faces) {
             for (let i = 1; i < face.length - 1; i++) {
                 indices.push(index, index + i, index + i + 1);
             }
@@ -223,42 +243,48 @@ class ObjectParser {
     }
 
     /**
-     * Retrieves all materials as a flat Float32Array.
-     * Each material includes Kd (diffuse color), Ks (specular color), and Ns (shininess).
+     * Retrieves all materials of a specific object as a flat Float32Array.
+     * @param {string} objectName - The name of the object to retrieve materials for.
      * @returns {Float32Array} The array of material properties.
      */
-    getMaterials() {
-    const materials = [];
-    for (let face of this.faces) {
-        for (let vertex of face) {
-            if (vertex.material && this.materials[vertex.material]) {
-                const material = this.materials[vertex.material];
-                materials.push(
-                    parseFloat(material.Kd[0]),
-                    parseFloat(material.Kd[1]),
-                    parseFloat(material.Kd[2]),
-                    parseFloat(material.Ks[0]),
-                    parseFloat(material.Ks[1]),
-                    parseFloat(material.Ks[2]),
-                    parseFloat(material.Ns),
-                    parseFloat(material.illum),
-                    material.diffuse_texture || -1,
-                    material.normal_texture || -1,
-                    material.specular_texture || -1,
-                );
-            } else {
-                // Default material if none is specified
-                materials.push(
-                    0.8, 0.8, 0.8,  // Default Kd
-                    0.5, 0.5, 0.5,  // Default Ks
-                    32.0,           // Default Ns
-                    2.0,            // Default illum
-                    -1,-1,-1         // No textures by default
-                );
+    getMaterials(objectName) {
+        const materials = [];
+        for (let face of this.objects[objectName].faces) {
+            for (let vertex of face) {
+                if (vertex.material && this.materials[vertex.material]) {
+                    const material = this.materials[vertex.material];
+                    materials.push(
+                        parseFloat(material.Kd[0]),
+                        parseFloat(material.Kd[1]),
+                        parseFloat(material.Kd[2]),
+                        parseFloat(material.Ks[0]),
+                        parseFloat(material.Ks[1]),
+                        parseFloat(material.Ks[2]),
+                        parseFloat(material.Ns),
+                        parseFloat(material.illum),
+                        material.diffuse_texture || -1,
+                        material.normal_texture || -1,
+                        material.specular_texture || -1
+                    );
+                } else {
+                    // Default material if none is specified
+                    materials.push(
+                        0.8, 0.8, 0.8,  // Default Kd
+                        0.5, 0.5, 0.5,  // Default Ks
+                        32.0,           // Default Ns
+                        2.0,            // Default illum
+                        -1, -1, -1      // No textures by default
+                    );
+                }
             }
         }
+        return new Float32Array(materials);
     }
-    return new Float32Array(materials);
-}
 
+    /**
+     * @returns {Array<string>} the list of object names, the parts that compose the object.
+     */
+    getObjectNames() {
+        return Object.keys(this.objects);
+    }
 }

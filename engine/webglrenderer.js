@@ -22,14 +22,20 @@ class WebGLRenderer {
      * @param {Object} renderObject - The object to render.
      */
     initBuffers(renderObject) {
-        const buffer = new WebGLBuffer(this.gl);
-        const triangles = renderObject.getTriangles();
-        const textures = renderObject.getTextures();
-        const partialTextures = renderObject.getPartialTextures();
-        buffer.setUpMeshes(triangles);
-        buffer.setUpTextures(textures);
-        buffer.setUpPartialTextures(partialTextures);
-        this.buffers.set(renderObject, buffer);
+        const partialBuffers = [];
+        const objectParts = renderObject.getParts();
+        for(const objectPart of objectParts){
+            const buffer = new WebGLBuffer(this.gl);
+            const triangles = objectPart.getTriangles();
+            const textures = renderObject.getTextures();
+            const partialTextures = renderObject.getPartialTextures();
+            buffer.setUpMeshes(triangles);
+            buffer.setUpTextures(textures);
+            buffer.setUpPartialTextures(partialTextures);
+            partialBuffers.push(buffer);
+        }
+        
+        this.buffers.set(renderObject, partialBuffers);
     }
 
     /**
@@ -92,8 +98,10 @@ class WebGLRenderer {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Rendering all the objects
-        for (const buffer of this.buffers.values()) {
-            this.renderObject(buffer, renderParams);
+        for (const bufferParts of this.buffers.values()) {
+            for(const buffer of bufferParts){
+                this.renderObject(buffer, renderParams);
+            }
         }
     }
 

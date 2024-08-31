@@ -262,7 +262,7 @@ class TransformationMatrix extends Matrix {
      * @param {number} z: rotation angle around z-axis.
      * @returns {TransformationMatrix} The resulting rotation matrix.
      */
-    static createRotationMatrix(x, y, z, xAxis = new Vector(1, 0, 0), yAxis = new Vector(0, 1, 0), zAxis = new Vector(0, 0, 1)) {
+    static createRotationMatrix(x, y, z, xAxis = new Vector3D(1, 0, 0), yAxis = new Vector3D(0, 1, 0), zAxis = new Vector3D(0, 0, 1)) {
         const rotationX = TransformationMatrix.createRotationAroundAxis(x,xAxis);
         const rotationY = TransformationMatrix.createRotationAroundAxis(y,yAxis);        
         const rotationZ = TransformationMatrix.createRotationAroundAxis(z,zAxis);

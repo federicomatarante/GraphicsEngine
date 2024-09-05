@@ -247,10 +247,9 @@ class WebGLBinder {
     /**
      * Binds the diffuse texture to the shader program.
      * @param {WebGLTexture} diffuseTexture - The texture to be used for diffuse mapping.
-     * @param {Array} objectsColor - The fallback color if no texture is used.
-     * @description If a diffuse texture is provided, binds it to the shader. Otherwise, sets a fallback color.
+     * @description If a diffuse texture is provided, binds it to the shader. Otherwise, a flag is set.
      */
-    bindDiffuseTexture(diffuseTexture, objectsColor) {
+    bindDiffuseTexture(diffuseTexture) {
         if (diffuseTexture) {
             this.gl.activeTexture(this.gl.TEXTURE0);
             this.gl.bindTexture(this.gl.TEXTURE_2D, diffuseTexture);
@@ -258,8 +257,6 @@ class WebGLBinder {
             this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_has_texture"), 1);
         } else {
             this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_has_texture"), 0);
-            const colorLocation = this.gl.getUniformLocation(this.program, 'u_color');
-            this.gl.uniform3fv(colorLocation, objectsColor);
         }
     }
 

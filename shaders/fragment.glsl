@@ -32,14 +32,13 @@ uniform vec3 u_viewPos;                // Camera position
 uniform vec3 u_lightColor;             // Light color
 uniform vec3 u_ambientColor;             // Light color
 uniform vec3 u_Ka;                     // Ambient reflection coefficient
-uniform vec3 u_color;                  // Material color (if not using texture)
 uniform int u_has_texture;             // Flag to control whether to use the base texture
 uniform sampler2D u_normal_texture;    // Normal map
 uniform int u_has_normal_texture;      // Flag to control whether to use the normal map
 uniform sampler2D u_specular_texture;  // Specular map
 uniform int u_has_specular_texture;    // Flag to control whether to use the specular map
 uniform sampler2D u_partial_textures[13]; // Array of partial textures
-
+uniform float u_ambientStrength;    // Strength of the ambient light
 
 // Function to get the material based on the index
 Material getMaterial(float index) {
@@ -200,7 +199,7 @@ void main() {
         return;
     }
 
-    vec3 ambient = u_Ka * mat.Ka * u_ambientColor;
+    vec3 ambient = u_Ka * mat.Ka * u_ambientColor * u_ambientStrength;
     if (mat.ambientTextureIndex != -1.0) {
         vec3 ambientMapValue = getTexture(mat.ambientTextureIndex, v_texcoord).rgb;
         ambient = ambient * ambientMapValue;

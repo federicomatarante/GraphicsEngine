@@ -33,7 +33,6 @@ class GraphicsEngine {
         this.cameraPosition = new Vector3D(0, 2, 10);
         this.lookAtPosition = new Vector3D(0, 0, 0);
         this.backgroundColor = [0, 0, 0, 1];
-        this.objectsColor = [1, 1, 1];
 
         // View Matrices
         const fieldOfView = 45 * Math.PI / 180; // In radiants
@@ -49,7 +48,7 @@ class GraphicsEngine {
             color: [1.0, 1.0, 1.0],
             ambient: {
                 color: [1.0, 1.0, 1.0],
-                strength: 0.1
+                strength: 1.0
             },
             materialReflectivity: {
                 Ka: [0.1, 0.1, 0.1],
@@ -125,7 +124,6 @@ class GraphicsEngine {
                 materialReflectivity: this.light.materialReflectivity,
             },
             backgroundColor: this.backgroundColor,
-            objectsColor: this.objectsColor,
         };
 
         this.renderer.renderAll(renderParams);
@@ -236,15 +234,6 @@ class GraphicsEngine {
     }
 
     /**
-     * Sets the color for all objects without a texture.
-     * @param {Array<number>} color - The color as an RGB array.
-     * @description Defines the color for objects that do not have textures applied.
-     */
-    setObjectsColor(color){
-        this.objectsColor = color.slice(0,3);
-    }
-
-    /**
      * Resets the camera view to its initial position.
      * @description Reverts the camera to its default position and look-at point.
      */
@@ -298,7 +287,7 @@ class GraphicsEngine {
      * @description Adjusts the strength of ambient lighting in the scene.
      */
     setAmbientLightStrength(strength) {
-        if (typeof strength !== 'number' || strength < 0 || strength > 1) {
+        if (typeof strength !== 'number' || strength < 0) {
             console.error('Invalid strength. Must be a number between 0 and 1.');
             return;
         }

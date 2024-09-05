@@ -14,7 +14,6 @@ class SettingsHandlers {
     constructor(engine) {
         this.engine = engine;
         this.pickBackgroundColor = this.#pickBackgroundColor.bind(this);
-        this.pickObjectsColor = this.#pickObjectsColor.bind(this);
         this.resetView = this.#resetView.bind(this);
         this.setCameraCenter = this.#setCameraCenter.bind(this);
     }
@@ -46,17 +45,6 @@ class SettingsHandlers {
     }
 
     /**
-     * Handles the selection of the objects' color.
-     * Applies the selected color to all objects in the engine.
-     * @param {Event} event - The event triggered by the color picker input.
-     */
-    #pickObjectsColor(event) {
-        const color = event.target.value;
-        this.engine.setObjectsColor(this.#hexToRgba(color));
-        this.engine.render();
-    }
-
-    /**
      * Resets the view in the engine to the default camera position.
      */
     #resetView() {
@@ -81,8 +69,7 @@ class SettingsHandlers {
      */
     register(backgroundColorPicker, objectColorPicker, resetViewButton,setCameraCenterButton) {
         backgroundColorPicker.addEventListener('input', this.pickBackgroundColor);
-        objectColorPicker.addEventListener('input', this.pickObjectsColor);
-        resetViewButton.addEventListener('click', this.resetView);
++        resetViewButton.addEventListener('click', this.resetView);
         setCameraCenterButton.addEventListener('click', this.setCameraCenter);
 
     }

@@ -18,7 +18,7 @@ class MoveObjectHandlers {
         this.moveControlsMenu = document.getElementById('moveControlsMenu');
         this.currentInterval = null;
         this.setupMoveControls();
-        this.delta = 0.005;
+        this.delta = 0.01;
     }
 
     /**
@@ -61,7 +61,7 @@ class MoveObjectHandlers {
      * @private
      */
     startContinuousAction(action) {
-        this.currentInterval = setInterval(action, 10);
+        this.currentInterval = setInterval(action, 1);
     }
 
     /**
@@ -73,7 +73,7 @@ class MoveObjectHandlers {
         if (this.currentInterval) {
             clearInterval(this.currentInterval);
             this.currentInterval = null;
-            this.delta = 0.005;
+            this.delta = 0.01;
         }
     }
 
@@ -84,7 +84,7 @@ class MoveObjectHandlers {
      * @param {number} z - The amount to translate in the z direction.
      */
     translate(x, y, z) {
-        x = x*this.delta; y=y*this.delta; z=z*this.delta;
+        x = x*this.delta*2; y=y*this.delta*2; z=z*this.delta*2;
         if (this.objectsMover.isPresent()) {
             const object = this.objectsMover.get();
             object.move(new Vector3D(x, y, z));

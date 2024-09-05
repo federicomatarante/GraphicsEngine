@@ -58,11 +58,12 @@ function registerListeners(engine) {
  * @returns {Promise<void>} A promise that resolves when initialization and rendering are complete.
  */
 async function initializeAndRender() {
+    
     const vertexShaderFile = "shaders/vertex.glsl";  // Path to the vertex shader file
     const fragmentShaderFile = "shaders/fragment.glsl";  // Path to the fragment shader file
 
     const canvas = document.getElementById('glcanvas');  // Get the canvas element
-    const gl = canvas.getContext("webgl");  // Create a WebGL rendering context
+    const gl = canvas.getContext("webgl2");  // Create a WebGL rendering context
 
     // Initialize the GraphicsEngine with the WebGL context and shader files
     const engine = new GraphicsEngine(gl, vertexShaderFile, fragmentShaderFile);

@@ -5,20 +5,80 @@
 class RenderObjectPart {
     /**
      * Creates an instance of RenderObjectPart with the specified data.
-     * @param {Float32Array} vertexData - The vertex positions of the object part.
-     * @param {Float32Array} textureData - The texture coordinates of the object part.
-     * @param {Float32Array} normalsData - The normal vectors of the object part.
-     * @param {Uint16Array} indexData - The indices for rendering the object part.
-     * @param {Float32Array} materialData - The material properties of the object part.
+     * @param {number} indexLenght - The length of the index data for rendering the part.
+     * @param {number} lineIndexLenght - The length of the line index data for rendering the part.
+     * @param {number} materialsIndexLength - The length of the material index data for the part.
      */
-    constructor(vertexData, textureData, normalsData, indexData, materialData) {
+    constructor(indexLenght, lineIndexLenght, materialsIndexLength) {
+        this.indexLenght = indexLenght;
+        this.lineIndexLenght = lineIndexLenght;
+        this.materialsIndexLength = materialsIndexLength;
+    }
+
+    /**
+     * Retrieves information about the part's index, line index, and material indices lengths.
+     * @returns {Object} An object containing the index length, line index length, and materials index length.
+     */
+    getIndexInfo() {
+        return {
+            indexLenght: this.indexLenght,
+            lineIndexLenght: this.lineIndexLenght,
+            materialsIndexLength: this.materialsIndexLength
+        }
+    }
+}
+
+
+/**
+ * RenderObject Class
+ * Represents a 3D object composed of multiple parts with position, orientation, and rendering data.
+ */
+class RenderObject {
+    /**
+     * Creates an instance of RenderObject, which can consist of multiple parts.
+     * @param {Float32Array} vertexData - An array of vertex positions.
+     * @param {Float32Array} textureData - An array of texture coordinates.
+     * @param {Float32Array} normalsData - An array of normal vectors.
+     * @param {Array} materials - An array of material properties for the object.
+     * @param {Uint16Array} indexData - An array of indices for rendering the object.
+     * @param {Uint16Array} lineIndexData - An array of line indices for rendering.
+     * @param {Float32Array} materialIndexData - An array of material indices.
+     * @param {Array} [partialTextures=[]] - An array of partial textures.
+     */
+    constructor(vertexData, textureData, normalsData, materials, indexData, lineIndexData, materialIndexData, partialTextures = []) {
         this.transformation = TransformationMatrix.identity(); // Initial orientation (identity matrix).
         this.vertexData = vertexData; // Vertex data (positions).
         this.renderData = vertexData; // Render data (initially the same as vertex data).
         this.textureData = textureData; // Texture coordinates.
         this.normalsData = normalsData; // Normal vectors.
+        this.materials = materials; // Material properties.
+        this.parts = []; // Array to store different parts of the object.
+        this.objectXAxis = new Vector3D(1, 0, 0);
+        this.objectYAxis = new Vector3D(0, 1, 0);
+        this.objectZAxis = new Vector3D(0, 0, 1);
+        this.diffuseTexture = null; // Placeholder for diffuse texture.
+        this.normalTexture = null; // Placeholder for normal texture.
+        this.specularTexture = null; // Placeholder for specular texture.
+        this.partialTextures = partialTextures; // List of partial textures.
         this.indexData = indexData; // Indices for rendering.
-        this.materialData = materialData; // Material properties.
+        this.lineIndexData = lineIndexData; // Line indices for rendering.
+        this.materialIndexData = materialIndexData; // Material indices for rendering.
+    }
+
+    /**
+     * Adds a new part to the RenderObject.
+     * @param {RenderObjectPart} part - The RenderObjectPart to add.
+     */
+    addPart(part) {
+        this.parts.push(part);
+    }
+
+    /**
+     * Retrieves the list of parts composing the object.
+     * @returns {Array<RenderObjectPart>} The list of RenderObjectPart instances.
+     */
+    getParts() {
+        return this.parts;
     }
 
     /**
@@ -37,19 +97,19 @@ class RenderObjectPart {
     }
 
     /**
-     * Gets the buffers needed for rendering the part.
-     * @returns {Object} An object containing the vertex positions, texture coordinates, normals, indices, and materials.
+     * Retrieves the buffers needed for rendering the object part.
+     * @returns {Object} An object containing the vertex positions, texture coordinates, normals, indices, line indices, and materials.
      */
     getTriangles() {
         return {
             positions: this.renderData,
             texcoords: this.textureData,
             normals: this.normalsData,
-            indices: this.indexData,
-            materials: this.materialData
+            indexData: this.indexData,
+            lineIndexData: this.lineIndexData,
+            materialIndexData: this.materialIndexData
         };
     }
-
 
     /**
      * Moves the part by the specified direction vector.
@@ -73,12 +133,11 @@ class RenderObjectPart {
         this.#applyTransformations();
     }
 
-
     /**
      * Sets the position of the part.
-     * @param {Vector3D} position - the new position.
+     * @param {Vector3D} position - The new position.
      */
-    setPosition(position){
+    setPosition(position) {
         this.transformation.setTraslation(position);
         this.#applyTransformations();
     }
@@ -89,86 +148,6 @@ class RenderObjectPart {
     resetTransformations() {
         this.transformation = TransformationMatrix.identity();
         this.#applyTransformations();
-    }
-
-}
-
-/**
- * RenderObject Class
- * Represents a 3D object composed of multiple parts with position, orientation, and rendering data.
- */
-class RenderObject {
-    /**
-     * Creates an instance of RenderObject, which can consist of multiple parts.
-    * @param {Array} partialTextures - An array of {Image}, given the partial textures of the render object part.
- 
-    */
-    constructor(partialTextures = []) {
-        this.parts = []; // Array to store different parts of the object.
-        this.objectXAxis = new Vector3D(1, 0, 0);
-        this.objectYAxis = new Vector3D(0, 1, 0);
-        this.objectZAxis = new Vector3D(0, 0, 1);
-        this.diffuseTexture = null; // Placeholder for diffuse texture.
-        this.normalTexture = null; // Placeholder for normal texture.
-        this.specularTexture = null; // Placeholder for specular texture.
-        this.partialTextures = partialTextures;
-    }
-
-    /**
-     * Adds a new part to the RenderObject.
-     * @param {RenderObjectPart} part - The RenderObjectPart to add.
-     */
-    addPart(part) {
-        this.parts.push(part);
-    }
-
-
-    /**
-     * @returns {Array{RenderObjectPart}} the list of parts composing the object.
-     */
-    getParts(){
-        return this.parts;
-    }
-
-    /**
-     * Moves all parts of the object by the specified direction vector.
-     * @param {Vector3D} direction - The direction vector to move the object.
-     */
-    move(direction) {
-        for (let part of this.parts) {
-            part.move(direction);
-        }
-    }
-
-    /**
-     * Rotates all parts of the object by applying the specified rotation matrix.
-     * @param {number} x - Rotation angle around x-axis.
-     * @param {number} y - Rotation angle around y-axis.
-     * @param {number} z - Rotation angle around z-axis.
-     */
-    rotate(x, y, z) {
-        for (let part of this.parts) {
-            part.rotate(x, y, z);
-        }
-    }
-
-    /**
-     * Resets transformations of all parts of the object to their original states.
-     */
-    resetTransformations() {
-        for (let part of this.parts) {
-            part.resetTransformations();
-        }
-    }
-
-    /**
-     * Sets the position of the object.
-     * @param {Vector3D} position - the new position.
-     */
-    setPosition(position){
-        for (let part of this.parts) {
-            part.setPosition(position);
-        }
     }
 
     /**
@@ -196,22 +175,30 @@ class RenderObject {
     }
 
     /**
-     * Gets the textures needed for rendering the part.
-     * @returns {Object} An object containing the diffuse, normal, and specular textures (if present, else None).
+     * Retrieves the textures needed for rendering the part.
+     * @returns {Object} An object containing the diffuse, normal, and specular textures (if present, otherwise null).
      */
     getTextures() {
         return {
             normalTexture: this.normalTexture,
             diffuseTexture: this.diffuseTexture,
-            specularTexture: this.specularTexture,
+            specularTexture: this.specularTexture
         };
     }
 
     /**
-     * Gets the partial textures needed for rendering the part.
-     * @returns {Array{HTMLImageElement}} The list of partial textures.
+     * Retrieves the partial textures needed for rendering the part.
+     * @returns {Array<HTMLImageElement>} The list of partial textures.
      */
     getPartialTextures() {
         return this.partialTextures;
+    }
+
+    /**
+     * Retrieves the materials for the part.
+     * @returns {Array} The list of materials.
+     */
+    getMaterials() {
+        return this.materials;
     }
 }

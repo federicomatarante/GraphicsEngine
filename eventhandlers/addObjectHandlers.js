@@ -116,8 +116,17 @@ class AddObjectHandlers {
      * Triggers the click event for the object file input element.
      * @private
      */
-    #click() {
-        this.objFileInput.click();
+    async #click() {
+        if(this.objContent!==null && this.mtlContent !==null){
+            await this.#handleFileUpload();
+
+            // Clear the file inputs after processing
+            this.objFileInput.value = '';
+            this.mtlFileInput.value = '';
+            this.imageFileInput.value = '';
+        } else{
+            alert("You need to insert both the .obj and the .mtl file.");
+        } 
     }
 
     /**
@@ -130,7 +139,6 @@ class AddObjectHandlers {
         if (!objFile) return;
 
         this.objContent = await this.#readFileContent(objFile);
-        this.mtlFileInput.click();
     }
 
     /**
@@ -142,12 +150,6 @@ class AddObjectHandlers {
         const mtlFile = event.target.files[0];
         if (!mtlFile) return;
         this.mtlContent = await this.#readFileContent(mtlFile);
-
-        if (confirm('Do you want to upload texture images?')) {
-            this.imageFileInput.click();
-        } else {
-            await this.#handleFileUpload();
-        }
 
     }
 
@@ -168,12 +170,7 @@ class AddObjectHandlers {
             this.textures[file.name] = textureImg;
         }
         this.imageFiles = Array.from(files);
-        await this.#handleFileUpload();
 
-        // Clear the file inputs after processing
-        this.objFileInput.value = '';
-        this.mtlFileInput.value = '';
-        this.imageFileInput.value = '';
     }
 
     /**
@@ -184,7 +181,7 @@ class AddObjectHandlers {
      * @param {HTMLInputElement} imageFileInput - The file input for the image files.
      */
     register(addButton, objFileInput, mtlFileInput, imageFileInput) {
-        addButton.addEventListener('click', this.click);
+        addButton.addEventListener('click',this.click);
         objFileInput.addEventListener('change', this.uploadObjectFile);
         mtlFileInput.addEventListener('change', this.uploadMaterialFile);
         imageFileInput.addEventListener('change', this.uploadImageFiles);

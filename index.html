@@ -249,9 +249,12 @@
     </div>
     <div id="menu">
         <ul>
-            <!-- Dynamic list items will be added here -->
+        <!-- Dynamic list items will be added here -->
         </ul>
         <button id="addButton">+</button>
+        <input type="file" id="objFileInput" accept=".obj" >
+        <input type="file" id="mtlFileInput" accept=".mtl">
+        <input type="file" id="imageFileInput" accept="image/*" multiple>
         <div class="color-picker">
             <label for="backgroundColorPicker">Background Color:</label>
             <input type="color" id="backgroundColorPicker" value="#000000">
@@ -261,9 +264,7 @@
         <button id="setCameraCenterButton">Set Camera Center</button>
         <button id="resetViewButton">Go back to the main view</button>
         <button id="lightSettingsButton">Light Settings</button>
-        <input type="file" id="objFileInput" accept=".obj" style="display:none">
-        <input type="file" id="mtlFileInput" accept=".mtl" style="display:none">
-        <input type="file" id="imageFileInput" accept="image/*" style="display: none;" multiple>
+
     </div>
     
     <!-- Light Settings Modal -->
@@ -288,6 +289,7 @@
     <script src="objects/objectparser.js"></script>
     <script src="objects/objectreader.js"></script>
     <script src="objects/texturereader.js"></script>
+    <script src="objects/materialbuffer.js"></script>
     <script src="maths/vector.js"></script>
     <script src="maths/matrix.js"></script>
     <script src="engine/webglengine.js"></script>

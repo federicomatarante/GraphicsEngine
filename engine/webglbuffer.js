@@ -15,19 +15,23 @@ class WebGLBuffer {
     /**
      * Constructor for the WebGLBuffer class.
      * @param {WebGLRenderingContext} gl - The WebGL rendering context.
+     * @description Initializes buffers and textures for rendering 3D objects.
      */
     constructor(gl) {
         this.gl = gl;
         this.positionsBuffer = null;
         this.texCoordBuffer = null;
         this.normalBuffer = null;
-        this.indexBuffer = null;
-        this.materialBuffer = null;
         this.diffuseTexture = null;
         this.normalTexture = null;
         this.specularTexture = null;
-        this.trianglesNumber = 0; // Stores the number of triangles (or indices) for rendering
         this.partialTextures = []
+        this.lineIndexBuffer = null;
+        this.materialsIndexBuffer = null;
+        this.indexBuffer = null;
+        this.indexInformation = [];
+        this.trianglesNumber = 0;
+        this.linesNumber = 0;
     }
 
     /**
@@ -36,8 +40,9 @@ class WebGLBuffer {
      * @param {Float32Array} triangles.positions - Array of vertex positions.
      * @param {Float32Array} triangles.texcoords - Array of texture coordinates.
      * @param {Float32Array} triangles.normals - Array of vertex normals.
-     * @param {Float32Array} triangles.materials - Array of material properties (e.g., diffuse, specular).
-     * @param {Uint16Array} triangles.indices - Array of vertex indices for indexed drawing.
+     * @param {Float32Array} triangles.materialIndexData - Array of material indices.
+     * @param {Uint16Array} triangles.indexData - Array of vertex indices for indexed drawing.
+     * @param {Uint16Array} triangles.lineIndexData - Array of line indices for line drawing.
      */
     setUpMeshes(triangles) {
         const gl = this.gl;
@@ -57,59 +62,84 @@ class WebGLBuffer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, triangles.normals, gl.STATIC_DRAW);
 
-        // Set up materials buffer
-        this.materialBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.materialBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, triangles.materials, gl.STATIC_DRAW);
+        // Set up Material indices buffer
+        this.materialsIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.materialsIndexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, triangles.materialIndexData, gl.STATIC_DRAW);
 
         // Set up indices buffer
         this.indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangles.indices, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangles.indexData, gl.STATIC_DRAW);
+        // Set up line indices buffer
+        this.lineIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.lineIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangles.lineIndexData, gl.STATIC_DRAW);
+
 
         // Store the number of triangles (indices)
-        this.trianglesNumber = triangles.indices.length;
+        this.trianglesNumber = triangles.indexData.length;
+        this.linesNumber = triangles.lineIndexData.length;
+    }
+
+    /**
+     * Sets up the index information.
+     * @param {Array} indexInformation - Array of index information.
+     * @description Stores additional information related to indices.
+     */
+    setUpIndexInformation(indexInformation){
+        this.indexInformation = indexInformation;
     }
 
     /**
      * Private method to set up a texture from an image.
-     * @param {HTMLImageElement} texture - The image element containing the texture.
+     * @param {HTMLImageElement} image - The image element containing the texture.
      * @returns {WebGLTexture} - The WebGL texture object.
+     * @description Creates and configures a texture object based on the provided image.
      */
     #setUpTexture(image) {
-            const gl = this.gl;
-
+        const gl = this.gl;
+    
         // Create a new texture object
         const textureObject = gl.createTexture();
         if (!textureObject) {
             console.error('Failed to create texture.');
             return null;
         }
-
+    
+        const isPowerOfTwo = (number) => (number & (number - 1)) === 0;
+    
         // Bind the texture object to TEXTURE_2D
         gl.bindTexture(gl.TEXTURE_2D, textureObject);
-
-        // Set texture parameters
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
+    
         // Ensure image is fully loaded
         if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            //gl.generateMipmap(gl.TEXTURE_2D);
-            // TODO generate mipmap when needed
+        
+            // Check if image is a power-of-two texture
+            if (isPowerOfTwo(image.width) && isPowerOfTwo(image.height)) {
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            } else {
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            }
         } else {
             console.error('Image not loaded or has invalid dimensions.');
             gl.bindTexture(gl.TEXTURE_2D, null);
             return null;
         }
-
+    
+        // Set texture parameters
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    
         // Unbind the texture
         gl.bindTexture(gl.TEXTURE_2D, null);
         return textureObject;
     }
+
+
     
 
     /**
@@ -118,6 +148,7 @@ class WebGLBuffer {
      * @param {HTMLImageElement} textures.diffuseTexture - The image element for the diffuse texture.
      * @param {HTMLImageElement} textures.normalTexture - The image element for the normal texture.
      * @param {HTMLImageElement} textures.specularTexture - The image element for the specular texture.
+     * @description Initializes the textures for different mapping types using image elements.
      */
     setUpTextures(textures) {
         this.diffuseTexture = textures.diffuseTexture ? this.#setUpTexture(textures.diffuseTexture) : null;
@@ -126,9 +157,10 @@ class WebGLBuffer {
     }
 
     /**
-    * Sets up the partial textures of the object.
-    * @param {Array<HTMLImageElement>} textures - The textures.
-    */
+     * Sets up the partial textures of the object.
+     * @param {Array<HTMLImageElement>} textures - The textures to be set up.
+     * @description Initializes a list of partial textures with a limit of 16 textures.
+     */
     setUpPartialTextures(textures) {
        this.partialTextures = [];
        for (let i = 0; i < Math.min(textures.length, 16); i++) { // Limit to 16 textures
@@ -140,6 +172,15 @@ class WebGLBuffer {
                console.warn(`Failed to set up texture at index ${i}.`);
            }
        }
+    }
+
+    /**
+     * Sets up the materials for the object.
+     * @param {Array} materials - Array of material properties.
+     * @description Stores material properties to be used for rendering.
+     */
+    setUpMaterials(materials){
+        this.materials = materials;
     }
 
 }

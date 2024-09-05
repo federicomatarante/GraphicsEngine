@@ -2,7 +2,7 @@
  * Vector Library
  * A collection of methods for vector calculations.
  */
-class Vector3D { // TODO rename to Vector3D
+class Vector3D {
     /**
      * Creates a new vector from the given components. Standard values are: (0,0,0)
      * @param {number} x - The x component of the vector.

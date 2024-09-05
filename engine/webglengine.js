@@ -21,6 +21,7 @@ class GraphicsEngine {
      * @param {WebGLRenderingContext} gl - The WebGL rendering context.
      * @param {string} vertexShaderFile - URL of the vertex shader file.
      * @param {string} fragmentShaderFile - URL of the fragment shader file.
+     * @description Initializes WebGL context, shader files, and default settings.
      */
     constructor(gl, vertexShaderFile, fragmentShaderFile) {
         this.gl = gl;
@@ -60,6 +61,7 @@ class GraphicsEngine {
     /**
      * Initializes the WebGL program.
      * @returns {Promise<boolean>} True if initialization is successful, false otherwise.
+     * @description Loads and compiles shaders, then sets up the WebGL program.
      */
     async init() {
         this.program = await initWebGL(this.gl, this.vertexShaderFile, this.fragmentShaderFile);
@@ -79,18 +81,20 @@ class GraphicsEngine {
     }
 
 
-
-    /** Adds a render object to the engine.
+    /**
+     * Adds a render object to the engine.
      * @param {Object} renderObject - The object to add.
-    */
+     * @description Initializes buffers for the added render object.
+     */
     add(renderObject) {
         this.renderObjects.push(renderObject);
-        this.renderer.initBuffers(renderObject); // Delegate buffer initialization to WebGLRenderer
+        this.renderer.initBuffers(renderObject);
     }
 
     /**
      * Removes a render object from the engine.
      * @param {Object} renderObject - The object to remove.
+     * @description Deletes buffers associated with the removed render object.
      */
     remove(renderObject) {
         this.renderObjects = this.renderObjects.filter(obj => obj !== renderObject);
@@ -100,19 +104,26 @@ class GraphicsEngine {
 
     /**
      * Renders all objects in the engine.
-    */
+     * @description Updates view and model matrices, computes lighting parameters, and draws all objects.
+     */
     render() {
         const upVector = new Vector3D(0, 1, 0);
         const viewMatrix = TransformationMatrix.createLookAt(this.cameraPosition, this.lookAtPosition, upVector);
         const modelViewMatrix = viewMatrix.multiply(this.modelMatrix);
         const normalMatrix = modelViewMatrix.inverse().transpose();
+        const lightPositionInView = viewMatrix.transform(new Vector3D(...this.light.position));
 
         const renderParams = {
             projectionMatrix: this.projectionMatrix,
-            modelViewMatrix,
-            normalMatrix,
+            modelViewMatrix: modelViewMatrix,
+            normalMatrix: normalMatrix,
             cameraPosition: this.cameraPosition,
-            light: this.light,
+            light: {
+                position: lightPositionInView,
+                color: this.light.color,
+                ambient: this.light.ambient,
+                materialReflectivity: this.light.materialReflectivity,
+            },
             backgroundColor: this.backgroundColor,
             objectsColor: this.objectsColor,
         };
@@ -122,8 +133,8 @@ class GraphicsEngine {
 
     /**
      * Refreshes the buffers for a render object.
-     * To use every time a renderobject state or position is modified.
      * @param {Object} renderObject - The object to refresh.
+     * @description Updates the buffers for a render object if its state or position is modified.
      */
     refresh(renderObject) {
         this.renderer.refreshBuffers(renderObject);
@@ -132,21 +143,24 @@ class GraphicsEngine {
     /**
      * Moves the camera in a given direction.
      * @param {Vector3D} direction - The direction to move the camera.
-    */
+     * @description Adjusts the camera position by adding a normalized direction vector.
+     */
     moveCamera(direction) {
         direction = direction.normalize();
         this.cameraPosition = this.cameraPosition.add(direction);
     }
 
-    /**
-     * @returns {Vector3D} The camera position.
-    */
+    /** @returns {Vector3D} The camera position.
+     * @description Retrieves the current position of the camera.
+     */
     getCameraPosition(){
         return this.cameraPosition;
     }
 
-    /** Sets the new camera center.
-     * @param {Vector3D} the new camera center to set.
+    /**
+     * Sets the new camera center.
+     * @param {Vector3D} cameraCenter - The new camera center to set.
+     * @description Updates the point at which the camera is looking.
      */
     setCameraCenter(cameraCenter){
         this.lookAtPosition = cameraCenter;
@@ -158,6 +172,7 @@ class GraphicsEngine {
      * @param {Vector3D} direction - The direction of rotation in 2D screen coordinates.
      * @param {number} angle - The angle of rotation in radians.
      * @returns {TransformationMatrix} The rotation matrix.
+     * @description Computes a rotation matrix for rotating around the camera based on a 2D direction and angle.
      */
     getRotationAroundCamera(direction, angle = Math.PI / 180){
         // Calcolare la matrice di visualizzazione
@@ -177,9 +192,10 @@ class GraphicsEngine {
     }
 
     /**
-     * Transforms the 2D direction in screen coordinates in the 3D coordinates of the space.
+     * Transforms the 2D direction in screen coordinates into 3D coordinates in space.
      * @param {Vector3D} direction - The direction of rotation in 2D screen coordinates.
-     * @returns {Vector3d} The transformed direction.
+     * @returns {Vector3D} The transformed direction in 3D space.
+     * @description Converts a 2D screen direction to a 3D direction in the world space.
      */
     getDirectionInSpace(direction){
         const upVector = new Vector3D(0, 1, 0);
@@ -191,15 +207,17 @@ class GraphicsEngine {
     /**
      * Rotates the camera.
      * @param {TransformationMatrix} rotationMatrix - The rotation matrix to apply.
-    */
+     * @description Applies a rotation matrix to the camera position.
+     */
     rotateCamera(rotationMatrix) {
         this.cameraPosition = rotationMatrix.transform(this.cameraPosition);
     }
     
     /**
-     * Traslates the camera.
-     * @param {Vector3D} direction - The direction to traslate.
+     * Translates the camera.
+     * @param {Vector3D} direction - The direction to translate.
      * @param {boolean} invert - Whether to invert the direction.
+     * @description Moves the camera by translating it in the given direction, with an optional inversion.
      */
     traslateCamera(direction, invert = true) {
         const scale = invert ? -0.2 : 0.2;
@@ -211,6 +229,7 @@ class GraphicsEngine {
     /**
      * Sets the background color.
      * @param {Array<number>} color - The color as an RGBA array.
+     * @description Updates the background color of the scene.
      */
     setBackgroundColor(color){
         this.backgroundColor = color;
@@ -219,6 +238,7 @@ class GraphicsEngine {
     /**
      * Sets the color for all objects without a texture.
      * @param {Array<number>} color - The color as an RGB array.
+     * @description Defines the color for objects that do not have textures applied.
      */
     setObjectsColor(color){
         this.objectsColor = color.slice(0,3);
@@ -226,16 +246,18 @@ class GraphicsEngine {
 
     /**
      * Resets the camera view to its initial position.
-    */
+     * @description Reverts the camera to its default position and look-at point.
+     */
     resetView(){
         this.cameraPosition = new Vector3D(0, 2, 10);
         this.lookAtPosition = new Vector3D(0, 0, 0);
     }
 
     /**
-    * Sets the light position in the scene.
-    * @param {Vector3D} position - The new light position as a Vector3D object.
-    */
+     * Sets the light position in the scene.
+     * @param {Vector3D} position - The new light position as a Vector3D object.
+     * @description Updates the position of the light source in the scene.
+     */
     setLightPosition(position) {
        if (!(position instanceof Vector3D)) {
            console.error('Invalid position. Expected a Vector3D object.');
@@ -247,6 +269,7 @@ class GraphicsEngine {
     /**
      * Sets the light color in the scene.
      * @param {Vector3D} color - The new light color as a Vector3D object, with each component (x, y, z) representing r, g, b values between 0 and 1.
+     * @description Changes the color of the light source.
      */
     setLightColor(color) {
         if (!(color instanceof Vector3D)) {
@@ -259,6 +282,7 @@ class GraphicsEngine {
     /**
      * Sets the ambient light color.
      * @param {Vector3D} color - The ambient light color as a Vector3D object, with each component (x, y, z) representing r, g, b values between 0 and 1.
+     * @description Updates the color of ambient lighting in the scene.
      */
     setAmbientLightColor(color) {
         if (!(color instanceof Vector3D)) {
@@ -271,6 +295,7 @@ class GraphicsEngine {
     /**
      * Sets the ambient light strength.
      * @param {number} strength - The ambient light strength, with a value between 0 and 1.
+     * @description Adjusts the strength of ambient lighting in the scene.
      */
     setAmbientLightStrength(strength) {
         if (typeof strength !== 'number' || strength < 0 || strength > 1) {
@@ -283,6 +308,7 @@ class GraphicsEngine {
     /**
      * Sets the material reflectivity coefficients for ambient lighting.
      * @param {Vector3D} Ka - The ambient reflectivity coefficient as a Vector3D object, with each component (x, y, z) representing r, g, b values between 0 and 1.
+     * @description Defines how materials reflect ambient light.
      */
     setMaterialAmbientReflectivity(Ka) {
         if (!(Ka instanceof Vector3D)) {
@@ -292,9 +318,10 @@ class GraphicsEngine {
         this.light.materialReflectivity.Ka = [Ka.x, Ka.y, Ka.z];
     }
 
-   /**
+    /**
      * Gets the light position in the scene.
      * @returns {Vector3D} The light position as a Vector3D object.
+     * @description Retrieves the current position of the light source.
      */
     getLightPosition() {
         return new Vector3D(...this.light.position);
@@ -303,6 +330,7 @@ class GraphicsEngine {
     /**
      * Gets the light color in the scene.
      * @returns {Vector3D} The light color as a Vector3D object.
+     * @description Retrieves the current color of the light source.
      */
     getLightColor() {
         return new Vector3D(...this.light.color);
@@ -311,6 +339,7 @@ class GraphicsEngine {
     /**
      * Gets the ambient light color in the scene.
      * @returns {Vector3D} The ambient light color as a Vector3D object.
+     * @description Retrieves the current color of ambient lighting in the scene.
      */
     getAmbientLightColor() {
         return new Vector3D(...this.light.ambient.color);
@@ -319,6 +348,7 @@ class GraphicsEngine {
     /**
      * Gets the ambient light strength in the scene.
      * @returns {number} The ambient light strength, with a value between 0 and 1.
+     * @description Retrieves the strength of ambient lighting in the scene.
      */
     getAmbientLightStrength() {
         return this.light.ambient.strength;
@@ -327,6 +357,7 @@ class GraphicsEngine {
     /**
      * Gets the material reflectivity coefficients for ambient lighting.
      * @returns {Vector3D} The ambient reflectivity coefficients as a Vector3D object.
+     * @description Retrieves the material's reflectivity for ambient light.
      */
     getMaterialAmbientReflectivity() {
         return new Vector3D(...this.light.materialReflectivity.Ka);

@@ -29,6 +29,7 @@ class WebGLBuffer {
         this.lineIndexBuffer = null;
         this.materialsIndexBuffer = null;
         this.indexBuffer = null;
+        this.invertTextureCoords = false;
         this.indexInformation = [];
         this.trianglesNumber = 0;
         this.linesNumber = 0;
@@ -80,6 +81,7 @@ class WebGLBuffer {
         // Store the number of triangles (indices)
         this.trianglesNumber = triangles.indexData.length;
         this.linesNumber = triangles.lineIndexData.length;
+        this.invertTextureCoords = triangles.invertTextureCoords;
     }
 
     /**
@@ -122,17 +124,17 @@ class WebGLBuffer {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             } else {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             }
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         } else {
             console.error('Image not loaded or has invalid dimensions.');
             gl.bindTexture(gl.TEXTURE_2D, null);
             return null;
         }
     
-        // Set texture parameters
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
     
         // Unbind the texture
         gl.bindTexture(gl.TEXTURE_2D, null);

@@ -52,6 +52,7 @@ class RenderObject {
         this.textureData = textureData; // Texture coordinates.
         this.normalsData = normalsData; // Normal vectors.
         this.materials = materials; // Material properties.
+        this.invertCoords = false; // Invert Y-axis texture cooridnates
         this.parts = []; // Array to store different parts of the object.
         this.objectXAxis = new Vector3D(1, 0, 0);
         this.objectYAxis = new Vector3D(0, 1, 0);
@@ -107,7 +108,8 @@ class RenderObject {
             normals: this.normalsData,
             indexData: this.indexData,
             lineIndexData: this.lineIndexData,
-            materialIndexData: this.materialIndexData
+            materialIndexData: this.materialIndexData,
+            invertTextureCoords: this.invertCoords
         };
     }
 
@@ -141,6 +143,16 @@ class RenderObject {
         this.transformation.setTraslation(position);
         this.#applyTransformations();
     }
+
+
+    /**
+     * Checks whether to invert the texture coordinates in the y-axis.
+     * @param {bool} invertCoords - Flag to invert coords.
+     */
+    setInvertTextureCoords(invertCoords){
+        this.invertCoords = invertCoords;
+    }
+
 
     /**
      * Resets the transformations of the part to its original state.

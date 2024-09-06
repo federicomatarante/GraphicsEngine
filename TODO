@@ -1,0 +1,9 @@
+(1) Fix light position
+(2) Check if there is a problem with lightnig ( maybe don't need to multiply coefficients from textures map with others ecc... ). 
+See eye for more info
+(3) Write PDF in which you explain:
+    1. What you did
+    2. Diagram of classes 
+    3. How to use library
+    4. Examples
+    5. Potential improvements

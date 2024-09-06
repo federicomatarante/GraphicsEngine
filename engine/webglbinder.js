@@ -194,6 +194,14 @@ class WebGLBinder {
     }
     
     /**
+     * Binds the flag that decides whether to invert the y-axis of the texture coordinates system.
+     * @param {bool} invertText - Flag to invert y-axis of the texture coordinates. 
+     */
+    bindInvertTextureCoordsFlag(invertText){
+        this.gl.uniform1i(this.gl.getUniformLocation(this.program, "u_invert_texture"), invertText ? 1 : 0);
+    }
+    
+    /**
      * Initializes the array of partial textures in the shader.
      * @param {number} textureCount - The number of partial textures (max 13).
      * @description Initializes texture samplers for a given number of textures. Limits the count to 13.

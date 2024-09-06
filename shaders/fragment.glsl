@@ -1,4 +1,4 @@
-precision highp float;
+precision mediump float;
 #define MAX_MATERIALS 50 // Example: Set a limit to the number of materials
 
 struct Material {
@@ -33,6 +33,7 @@ uniform vec3 u_lightColor;             // Light color
 uniform vec3 u_ambientColor;             // Light color
 uniform vec3 u_Ka;                     // Ambient reflection coefficient
 uniform int u_has_texture;             // Flag to control whether to use the base texture
+uniform int u_invert_texture;           // Flat that says whether to invert y-axis in the texture coordinate system
 uniform sampler2D u_normal_texture;    // Normal map
 uniform int u_has_normal_texture;      // Flag to control whether to use the normal map
 uniform sampler2D u_specular_texture;  // Specular map
@@ -182,14 +183,20 @@ vec4 getTexture(float index, vec2 texcoord) {
 
 void main() {
     Material mat = getMaterial(v_materialIndex);
+    vec2 texCoord;
+    if(u_invert_texture==1){
+        texCoord = vec2(v_texcoord.x,1.0-v_texcoord.y);
+    } else {
+        texCoord = v_texcoord;
+    }
     
     // Apply the color, using the texture if available
     vec4 color = vec4(mat.Kd, 1.0);
     if (mat.diffuseTextureIndex != -1.0) {
-        vec4 texColor = getTexture(mat.diffuseTextureIndex, v_texcoord);
+        vec4 texColor = getTexture(mat.diffuseTextureIndex, texCoord);
         color = color * texColor;
     } else if (u_has_texture != 0) {
-        vec4 texColor = texture2D(u_texture, v_texcoord);
+        vec4 texColor = texture2D(u_texture, texCoord);
         color = color * texColor;
     }
 
@@ -201,7 +208,7 @@ void main() {
 
     vec3 ambient = u_Ka * mat.Ka * u_ambientColor * u_ambientStrength;
     if (mat.ambientTextureIndex != -1.0) {
-        vec3 ambientMapValue = getTexture(mat.ambientTextureIndex, v_texcoord).rgb;
+        vec3 ambientMapValue = getTexture(mat.ambientTextureIndex, texCoord).rgb;
         ambient = ambient * ambientMapValue;
     }
 
@@ -215,9 +222,9 @@ void main() {
     // Calculate the normal
     vec3 norm = normalize(v_normal);
     if (mat.normalTextureIndex >= 0.0) {
-        norm = normalize(norm * (getTexture(mat.normalTextureIndex, v_texcoord).rgb * 2.0 - 1.0));
+        norm = normalize(norm * (getTexture(mat.normalTextureIndex, texCoord).rgb * 2.0 - 1.0));
     } else if (u_has_normal_texture == 1) {
-        norm = normalize(norm * (texture2D(u_normal_texture, v_texcoord).rgb * 2.0 - 1.0));
+        norm = normalize(norm * (texture2D(u_normal_texture, texCoord).rgb * 2.0 - 1.0));
     }
 
 
@@ -230,7 +237,7 @@ void main() {
     // Determine shininess
     float Ns = mat.Ns;
     if (mat.shininessTextureIndex != -1.0) {
-        Ns = Ns * getTexture(mat.shininessTextureIndex, v_texcoord).r;
+        Ns = Ns * getTexture(mat.shininessTextureIndex, texCoord).r;
     }
 
     // Calculate the refraction based on the index of refraction Ni
@@ -241,10 +248,11 @@ void main() {
     float spec = pow(max(dot(norm, halfwayDir), 0.0), Ns);
     vec3 Ks = mat.Ks;
     if (mat.specularTextureIndex >= 0.0) {
-        vec3 specularMapValue = getTexture(mat.specularTextureIndex, v_texcoord).rgb;
+        vec3 specularMapValue = getTexture(mat.specularTextureIndex, texCoord).rgb;
         Ks = Ks * specularMapValue;
     } else if (u_has_specular_texture == 1) {
-        vec3 specularMapValue = texture2D(u_specular_texture, v_texcoord).rgb;
+        
+        vec3 specularMapValue = texture2D(u_specular_texture, texCoord).rgb;
         Ks = Ks * specularMapValue;
     }
     vec3 specular = Ks * spec * u_lightColor;
@@ -253,7 +261,7 @@ void main() {
     // Emission component
     vec3 Ke = mat.Ke;
     if (mat.emissionTextureIndex != -1.0) {
-        Ke = getTexture(mat.emissionTextureIndex, v_texcoord).rgb;
+        Ke = getTexture(mat.emissionTextureIndex, texCoord).rgb;
     }
     result += Ke;
 

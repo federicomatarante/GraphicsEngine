@@ -72,33 +72,33 @@ class ObjectParser {
                     currentMaterial.Ke = [parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])];
                     break;
                 case 'map_Ke':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.emissionTexture = textureIndex;
                     break;
                 case 'map_Kd':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.diffuseTexture = textureIndex;
                     break;
                 case 'map_Ns':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.shininessTexture = textureIndex;
                     break;
                 case 'bump':
                 case 'map_Bump':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.normalTexture = textureIndex;
                     break;
                 case 'map_Ks':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.specularTexture = textureIndex;
                     break;
                 case 'map_Ka':
-                    textureName = parts[1].split('/').pop().split('\\').pop();
+                    textureName = parts.slice(1).join(' ').split('/').pop().split('\\').pop();
                     textureIndex = this.textures.indexOf(textureName);
                     currentMaterial.ambientTexture = textureIndex;
                     break;
@@ -138,12 +138,12 @@ class ObjectParser {
     #parseOBJ(text) {
         const lines = text.split('\n');
         let currentMaterialIdx = -1;
-
+    
         for (let line of lines) {
             line = line.trim();
             const parts = line.split(" ");
             if (parts.length === 0) continue;
-
+    
             switch (parts[0]) {
                 case 'o': // New Object
                 case 'g': // New Group
@@ -208,13 +208,14 @@ class ObjectParser {
             }
         }
     }
+    
 
     /**
      * Retrieves all vertices as a flat Float32Array.
      * @returns {Float32Array} The array of vertices.
      */
     getVertices() {
-        const vertices = []; // TODO what if it's not a triangle
+        const vertices = []
         for(const objectName of this.getObjectNames()){
             for (let face of this.objects[objectName].faces) {
                 for (let vertex of face) {

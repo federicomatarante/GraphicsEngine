@@ -26,6 +26,7 @@ class AddObjectHandlers {
         this.uploadMaterialFile = this.#uploadMaterialFile.bind(this);
         this.uploadImageFiles = this.#uploadImageFiles.bind(this);
         this.click = this.#click.bind(this);
+        this.invertTexture = this.#invertTexture.bind(this);
 
         this.engine = engine;
         this.textureUploadHandlers = textureUploadHandlers;
@@ -72,12 +73,27 @@ class AddObjectHandlers {
         }
         this.moveObjectHandlers.register(moveBtn, renderObject);
 
-        // Append buttons to the menu item and add the object to the engine
+        // New "Invert Texture" checkbox
+        const invertTextureLabel = document.createElement('label');
+        invertTextureLabel.style.marginLeft = '10px';
+        
+        const invertTextureCheckbox = document.createElement('input');
+        invertTextureCheckbox.type = 'checkbox';
+        invertTextureCheckbox.id = `invert-texture-${menuList.children.length}`;
+        invertTextureCheckbox.addEventListener('change', (event) => this.invertTexture(renderObject, event.target.checked));
+        
+        const invertTextureText = document.createTextNode('Invert Texture');
+        
+        invertTextureLabel.appendChild(invertTextureCheckbox);
+        invertTextureLabel.appendChild(invertTextureText);
+
+        // Append buttons and checkbox to the menu item and add the object to the engine
         menuItem.appendChild(diffuseBtn);
         menuItem.appendChild(specularBtn);
         menuItem.appendChild(normalBtn);
         menuItem.appendChild(removeBtn);
         menuItem.appendChild(moveBtn);
+        menuItem.appendChild(invertTextureLabel);
         menuList.appendChild(menuItem);
 
         this.engine.add(renderObject);
@@ -108,9 +124,6 @@ class AddObjectHandlers {
             }
         });
     }
-
-
-    
 
     /**
      * Triggers the click event for the object file input element.
@@ -150,7 +163,6 @@ class AddObjectHandlers {
         const mtlFile = event.target.files[0];
         if (!mtlFile) return;
         this.mtlContent = await this.#readFileContent(mtlFile);
-
     }
 
     /**
@@ -170,7 +182,18 @@ class AddObjectHandlers {
             this.textures[file.name] = textureImg;
         }
         this.imageFiles = Array.from(files);
+    }
 
+    /**
+     * Handles the inversion of the texture for the given render object.
+     * @param {Object} renderObject - The object whose texture should be inverted.
+     * @param {boolean} isChecked - Whether the checkbox is checked or not.
+     * @private
+     */
+    #invertTexture(renderObject, isChecked) {
+        renderObject.setInvertTextureCoords(isChecked);
+        this.engine.refresh(renderObject);
+        this.engine.render();
     }
 
     /**

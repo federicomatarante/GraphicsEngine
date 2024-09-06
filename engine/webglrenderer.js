@@ -69,6 +69,8 @@ class WebGLRenderer {
         binder.bindNormalTexture(buffer.normalTexture);
         binder.bindSpecularTexture(buffer.specularTexture);
         binder.initializePartialTextures(buffer.partialTextures.length);
+        binder.bindInvertTextureCoordsFlag(buffer.invertTextureCoords);
+        
 
         buffer.partialTextures.forEach((texture, i) => {
             binder.bindPartialTextures(texture, i);

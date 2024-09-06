@@ -48,7 +48,7 @@ class GraphicsEngine {
             color: [1.0, 1.0, 1.0],
             ambient: {
                 color: [1.0, 1.0, 1.0],
-                strength: 1.0
+                strength: 3.0
             },
             materialReflectivity: {
                 Ka: [0.1, 0.1, 0.1],

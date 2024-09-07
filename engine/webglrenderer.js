@@ -80,7 +80,7 @@ class WebGLRenderer {
         binder.bindMaterialsIndices(buffer.materialsIndexBuffer);
 
         // Setting up view matrices
-        binder.bindViewMatrices(renderParams.projectionMatrix, renderParams.modelViewMatrix, renderParams.normalMatrix);
+        binder.bindViewMatrices(renderParams.modelMatrix,renderParams.projectionMatrix, renderParams.modelViewMatrix, renderParams.normalMatrix);
         binder.bindCameraPosition(renderParams.cameraPosition);
 
         // Setting up light information

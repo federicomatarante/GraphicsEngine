@@ -44,14 +44,11 @@ class GraphicsEngine {
 
         // Light
         this.light = {
-            position: [1.0, 1.0, 2.0],
+            position: [0, 40.0, 200.0],
             color: [1.0, 1.0, 1.0],
             ambient: {
                 color: [1.0, 1.0, 1.0],
-                strength: 3.0
-            },
-            materialReflectivity: {
-                Ka: [0.1, 0.1, 0.1],
+                strength: 1.0
             }
         };
     }
@@ -115,19 +112,14 @@ class GraphicsEngine {
         const viewMatrix = TransformationMatrix.createLookAt(this.cameraPosition, this.lookAtPosition, upVector);
         const modelViewMatrix = viewMatrix.multiply(this.modelMatrix);
         const normalMatrix = modelViewMatrix.inverse().transpose();
-        const lightPositionInView = viewMatrix.transform(new Vector3D(...this.light.position));
 
         const renderParams = {
             projectionMatrix: this.projectionMatrix,
+            modelMatrix: this.modelMatrix,
             modelViewMatrix: modelViewMatrix,
             normalMatrix: normalMatrix,
             cameraPosition: this.cameraPosition,
-            light: {
-                position: lightPositionInView,
-                color: this.light.color,
-                ambient: this.light.ambient,
-                materialReflectivity: this.light.materialReflectivity,
-            },
+            light: this.light,
             backgroundColor: this.backgroundColor,
         };
 
@@ -298,19 +290,6 @@ class GraphicsEngine {
         }
         this.light.ambient.strength = strength;
     }
-    
-    /**
-     * Sets the material reflectivity coefficients for ambient lighting.
-     * @param {Vector3D} Ka - The ambient reflectivity coefficient as a Vector3D object, with each component (x, y, z) representing r, g, b values between 0 and 1.
-     * @description Defines how materials reflect ambient light.
-     */
-    setMaterialAmbientReflectivity(Ka) {
-        if (!(Ka instanceof Vector3D)) {
-            console.error('Invalid ambient reflectivity. Expected a Vector3D object.');
-            return;
-        }
-        this.light.materialReflectivity.Ka = [Ka.x, Ka.y, Ka.z];
-    }
 
     /**
      * Gets the light position in the scene.
@@ -346,15 +325,6 @@ class GraphicsEngine {
      */
     getAmbientLightStrength() {
         return this.light.ambient.strength;
-    }
-
-    /**
-     * Gets the material reflectivity coefficients for ambient lighting.
-     * @returns {Vector3D} The ambient reflectivity coefficients as a Vector3D object.
-     * @description Retrieves the material's reflectivity for ambient light.
-     */
-    getMaterialAmbientReflectivity() {
-        return new Vector3D(...this.light.materialReflectivity.Ka);
     }
 
 }

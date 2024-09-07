@@ -307,7 +307,8 @@ class WebGLBinder {
      * @param {TransformationMatrix} normalMatrix - The normal matrix.
      * @description Sets the view matrices for the shader program to handle transformations.
      */
-    bindViewMatrices(projectionMatrix, modelViewMatrix, normalMatrix) {
+    bindViewMatrices(modelMatrix,projectionMatrix, modelViewMatrix, normalMatrix) {
+        this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'u_modelMatrix'), false, new Float32Array(modelMatrix.elements));
         this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'u_projectionMatrix'), false, new Float32Array(projectionMatrix.elements));
         this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'u_modelViewMatrix'), false, new Float32Array(modelViewMatrix.elements));
         this.gl.uniformMatrix4fv(this.gl.getUniformLocation(this.program, 'u_normalMatrix'), false, new Float32Array(normalMatrix.elements));
@@ -330,12 +331,11 @@ class WebGLBinder {
      * @param {Object} light.ambient - The ambient light properties.
      * @param {Array} light.ambient.color - The ambient light color.
      * @param {Number} light.ambient.strength - The strength of the ambient light.
-     * @param {Array} light.materialReflectivity.Ka - The ambient reflectivity of the material.
      * @description Sets the lighting parameters for the shader to compute light effects.
      */
     bindLight(light) {
+        this.gl.uniform3fv(this.gl.getUniformLocation(this.program,'u_lightPos'),light.position);
         this.gl.uniform3fv(this.gl.getUniformLocation(this.program, 'u_lightColor'), light.color);
-        this.gl.uniform3fv(this.gl.getUniformLocation(this.program, 'u_Ka'), light.materialReflectivity.Ka);
         this.gl.uniform3fv(this.gl.getUniformLocation(this.program, 'u_ambientColor'), light.ambient.color);
         this.gl.uniform1f(this.gl.getUniformLocation(this.program, 'u_ambientStrength'), light.ambient.strength);
     }

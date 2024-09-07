@@ -25,13 +25,11 @@ varying vec2 v_texcoord;           // Texture coordinates
 varying vec3 v_normal;             // Normal interpolated from the vertex shader
 varying vec3 v_fragPos;            // Fragment position in world space
 varying float v_materialIndex;     // Index of the material
-
+varying vec3 v_lightDir; 
 uniform sampler2D u_texture;           // Diffuse map
-uniform vec3 u_lightPos;               // Light position
 uniform vec3 u_viewPos;                // Camera position
 uniform vec3 u_lightColor;             // Light color
 uniform vec3 u_ambientColor;             // Light color
-uniform vec3 u_Ka;                     // Ambient reflection coefficient
 uniform int u_has_texture;             // Flag to control whether to use the base texture
 uniform int u_invert_texture;           // Flat that says whether to invert y-axis in the texture coordinate system
 uniform sampler2D u_normal_texture;    // Normal map
@@ -206,7 +204,7 @@ void main() {
         return;
     }
     
-    vec3 ambient = u_Ka * mat.Ka * u_ambientColor * u_ambientStrength;
+    vec3 ambient = mat.Ka * u_ambientColor * u_ambientStrength;
     if (mat.ambientTextureIndex != -1.0) {
         vec3 ambientMapValue = getTexture(mat.ambientTextureIndex, texCoord).rgb;
         ambient = ambient * ambientMapValue;
@@ -222,14 +220,14 @@ void main() {
     // Calculate the normal
     vec3 norm = normalize(v_normal);
     if (mat.normalTextureIndex >= 0.0) {
-        norm = normalize(norm * (getTexture(mat.normalTextureIndex, texCoord).rgb * 2.0 - 1.0));
+        norm = normalize(getTexture(mat.normalTextureIndex, texCoord).rgb * 2.0 - 1.0);
     } else if (u_has_normal_texture == 1) {
-        norm = normalize(norm * (texture2D(u_normal_texture, texCoord).rgb * 2.0 - 1.0));
+        norm = normalize(texture2D(u_normal_texture, texCoord).rgb * 2.0 - 1.0);
     }
 
 
     // Diffuse component
-    vec3 lightDir = normalize(u_lightPos - v_fragPos);
+    vec3 lightDir = normalize(v_lightDir);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = mat.Kd * diff * u_lightColor;
     result += diffuse;

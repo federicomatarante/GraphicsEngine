@@ -215,7 +215,8 @@ class GraphicsEngine {
      * @description Moves the camera by translating it in the given direction, with an optional inversion.
      */
     traslateCamera(direction, invert = true) {
-        const scale = invert ? -0.2 : 0.2;
+        const distance = this.cameraPosition.distance(this.lookAtPosition);        
+        const scale = invert ? -0.005*distance : 0.005*distance;
         const finalDirection =  direction.normalize().scale(scale);
         this.cameraPosition = this.cameraPosition.add(finalDirection);
         this.lookAtPosition = this.lookAtPosition.add(finalDirection);

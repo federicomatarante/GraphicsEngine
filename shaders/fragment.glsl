@@ -205,7 +205,7 @@ void main() {
         gl_FragColor = vec4(color.rgb, alpha);
         return;
     }
-
+    
     vec3 ambient = u_Ka * mat.Ka * u_ambientColor * u_ambientStrength;
     if (mat.ambientTextureIndex != -1.0) {
         vec3 ambientMapValue = getTexture(mat.ambientTextureIndex, texCoord).rgb;

@@ -72,6 +72,11 @@ class GraphicsEngine {
         // Initialize the renderer with the WebGL program
         this.renderer = new WebGLRenderer(this.gl, this.program);
 
+        // Blending activation 
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+        this.gl.enable(this.gl.SAMPLE_ALPHA_TO_COVERAGE);
+
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
         this.gl.enable(this.gl.CULL_FACE);

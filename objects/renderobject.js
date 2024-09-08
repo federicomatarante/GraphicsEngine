@@ -136,6 +136,18 @@ class RenderObject {
     }
 
     /**
+     * Resizes the part by applying the specified scale factors.
+     * @param {number} scaleX - Scale factor along the x-axis.
+     * @param {number} scaleY - Scale factor along the y-axis.
+     * @param {number} scaleZ - Scale factor along the z-axis.
+     */
+    resize(scaleX, scaleY, scaleZ) {
+        const scaleMatrix = TransformationMatrix.createScaleMatrix(scaleX, scaleY, scaleZ);
+        this.transformation = this.transformation.multiply(scaleMatrix);
+        this.#applyTransformations();
+    }
+
+    /**
      * Sets the position of the part.
      * @param {Vector3D} position - The new position.
      */

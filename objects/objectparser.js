@@ -192,6 +192,8 @@ class ObjectParser {
                     }
                     this.objects[this.currentObjectName].lines.push(lineSegments);
                     break;
+                case 'p': // Point information
+                    
                 case 'usemtl': // Use a specific material for subsequent faces
                     currentMaterialIdx = Object.keys(this.materials).indexOf(parts[1].replaceAll("\"",''),1);
                     if(currentMaterialIdx === -1){

@@ -40,6 +40,14 @@ class MoveObjectHandlers {
             rotateYMinus: () => this.startContinuousAction(() => this.rotate(0, -1, 0)),
             rotateZPlus: () => this.startContinuousAction(() => this.rotate(0, 0, 1)),
             rotateZMinus: () => this.startContinuousAction(() => this.rotate(0, 0, -1)),
+            scaleXPlus: () => this.startContinuousAction(() => this.scale(1 + this.delta, 1, 1)),
+            scaleXMinus: () => this.startContinuousAction(() => this.scale(1 - this.delta, 1, 1)),
+            scaleYPlus: () => this.startContinuousAction(() => this.scale(1, 1 + this.delta, 1)),
+            scaleYMinus: () => this.startContinuousAction(() => this.scale(1, 1 - this.delta, 1)),
+            scaleZPlus: () => this.startContinuousAction(() => this.scale(1, 1, 1 + this.delta)),
+            scaleZMinus: () => this.startContinuousAction(() => this.scale(1, 1, 1 - this.delta)),
+            uniformScalePlus: () => this.startContinuousAction(() => this.scale(1 + this.delta, 1 + this.delta, 1 + this.delta)),
+            uniformScaleMinus: () => this.startContinuousAction(() => this.scale(1 - this.delta, 1 - this.delta, 1 - this.delta)),
         };
 
         Object.keys(controls).forEach(id => {
@@ -110,6 +118,23 @@ class MoveObjectHandlers {
             this.delta = this.delta <= 0.2  ? this.delta*1.1 : 0.2;
         }
     }
+
+/**
+ * Scales the selected object by the specified factors along the x, y, and z axes.
+ * @param {number} scaleX - The factor to scale along the x-axis.
+ * @param {number} scaleY - The factor to scale along the y-axis.
+ * @param {number} scaleZ - The factor to scale along the z-axis.
+ */
+scale(scaleX, scaleY, scaleZ) {
+    if (this.objectsMover.isPresent()) {
+        const object = this.objectsMover.get();
+        object.resize(scaleX, scaleY, scaleZ);  // Assuming resize method is added in RenderObject
+        this.engine.refresh(object);
+        this.engine.render();
+        this.delta = this.delta <= 0.2 ? this.delta * 1.1 : 0.2;
+    }
+}
+
 
     /**
      * Teleports the object in the camera position.

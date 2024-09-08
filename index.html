@@ -205,6 +205,7 @@
 <body>
     <canvas id="glcanvas"></canvas>
     <div id="moveControlsMenu">
+        <!-- Existing Controls -->
         <div class="control-section">
             <h3>Translate</h3>
             <div class="control-group">
@@ -223,6 +224,7 @@
                 <button id="translateZPlus">+</button>
             </div>
         </div>
+    
         <div class="control-section">
             <h3>Rotate</h3>
             <div class="control-group">
@@ -241,12 +243,40 @@
                 <button id="rotateZPlus">+</button>
             </div>
         </div>
+    
+        <!-- New Scale Controls -->
+        <div class="control-section">
+            <h3>Scale</h3>
+            <div class="control-group">
+                <button id="scaleXMinus">-</button>
+                <span>X</span>
+                <button id="scaleXPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="scaleYMinus">-</button>
+                <span>Y</span>
+                <button id="scaleYPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="scaleZMinus">-</button>
+                <span>Z</span>
+                <button id="scaleZPlus">+</button>
+            </div>
+            <div class="control-group">
+                <button id="uniformScaleMinus">-</button>
+                <span>Uniform</span>
+                <button id="uniformScalePlus">+</button>
+            </div>
+        </div>
+    
+        <!-- Existing Buttons -->
         <div class="button-group">
             <button id="resetTransformations">Reset</button> 
             <button id="teleportHere">Teleport here</button>
         </div>
         <button id="finishMove">Finish Move</button>
     </div>
+    
     <div id="menu">
         <ul>
         <!-- Dynamic list items will be added here -->

@@ -274,6 +274,22 @@ class TransformationMatrix extends Matrix {
     
         return rotationMatrix;
     }
+
+    /**
+     * Creates a scaling matrix with the given scale factors.
+     * @param {number} scaleX - Scale factor along the x-axis.
+     * @param {number} scaleY - Scale factor along the y-axis.
+     * @param {number} scaleZ - Scale factor along the z-axis.
+     * @returns {TransformationMatrix} The scaling matrix.
+     */
+    static createScaleMatrix(scaleX, scaleY, scaleZ) {
+        return new TransformationMatrix([
+            scaleX, 0,      0,      0,
+            0,      scaleY, 0,      0,
+            0,      0,      scaleZ, 0,
+            0,      0,      0,      1
+        ]);
+    }
     
 
     /**

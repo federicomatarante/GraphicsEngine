@@ -25,7 +25,7 @@ varying vec2 v_texcoord;           // Texture coordinates
 varying vec3 v_normal;             // Normal interpolated from the vertex shader
 varying vec3 v_fragPos;            // Fragment position in world space
 varying float v_materialIndex;     // Index of the material
-varying vec3 v_lightDir; 
+varying vec3 v_lightDir;
 uniform sampler2D u_texture;           // Diffuse map
 uniform vec3 u_viewPos;                // Camera position
 uniform vec3 u_lightColor;             // Light color

@@ -13,7 +13,7 @@ uniform mat4 u_modelMatrix;
 varying vec2 v_texcoord;
 varying vec3 v_normal;
 varying vec3 v_fragPos;
-varying flat float v_materialIndex;
+varying float v_materialIndex;
 varying vec3 v_lightDir;
 
 void main() {

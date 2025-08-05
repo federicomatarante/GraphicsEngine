@@ -33,7 +33,7 @@ A non-exhaustive list of implemented features includes:
 
 A rendering simulator has also been developed to showcase the capabilities of the framework.
 <div align="center">
-  <img src="resources/graphicsengine.png" width="400"/>
+  <img src="resources/graphics_engine.png" width="400"/>
 </div>
 
 ### 🛠 Technologies Used

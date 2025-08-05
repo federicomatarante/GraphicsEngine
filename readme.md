@@ -16,6 +16,8 @@ E' stato inoltre creato un simulatore di rendering per mostrare le capacità del
   <img src="resources/graphics_engine.png" width="400"/>
 </div>
 
+**Consigliato**: leggere la presentazione per maggiori informazioni.
+
 ### 🛠 Tecnologie usate
 - Javascript: codice di base.
 - WebGL: per le API di rendering per la GPU.
@@ -35,6 +37,8 @@ A rendering simulator has also been developed to showcase the capabilities of th
 <div align="center">
   <img src="resources/graphics_engine.png" width="400"/>
 </div>
+
+**Reccommended**: read the presentation for further information.
 
 ### 🛠 Technologies Used
 - JavaScript: core codebase.
